@@ -2,7 +2,9 @@
   "name": "phosphor-ui",
   "version": "0.0.0",
   "description": "The low-level ui functionality of the PhosphorJS project.",
-  "dependencies": {},
+  "dependencies": {
+    "phosphor-core": "^0.2.0"
+  },
   "devDependencies": {
     "coveralls": "^2.11.9",
     "expect.js": "^0.3.1",
