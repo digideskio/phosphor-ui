@@ -2,7 +2,9 @@
   "name": "phosphor-ui",
   "version": "0.0.0",
   "description": "The low-level ui functionality of the PhosphorJS project.",
-  "dependencies": {},
+  "dependencies": {
+    "phosphor-core": "^0.2.0"
+  },
   "devDependencies": {
     "coveralls": "^2.11.9",
     "expect.js": "^0.3.1",
@@ -27,12 +29,12 @@
     "build:src": "tsc --project src",
     "build:test": "tsc --project test/src",
     "build": "npm run build:src && npm run build:test",
-    "test:chrome": "karma start --browsers=Chrome test/karma.conf.js",
-    "test:coverage": "karma start test/karma-cov.conf.js",
-    "test:firefox": "karma start --browsers=Firefox test/karma.conf.js",
-    "test:ie": "karma start --browsers=IE test/karma.conf.js",
-    "test:debug": "karma start --browsers=Chrome --singleRun=false --debug=true test/karma.conf.js",
-    "test": "npm run test:firefox",
+    "test:chrome": "echo 'no tests defined'",
+    "test:coverage": "echo 'no tests defined'",
+    "test:firefox": "echo 'no tests defined'",
+    "test:ie": "echo 'no tests defined'",
+    "test:debug": "echo 'no tests defined'",
+    "test": "echo 'no tests defined'",
     "prepublish": "npm run build"
   },
   "repository": {
@@ -43,7 +45,9 @@
     "lib/*.d.ts",
     "lib/*.js",
     "lib/**/*.d.ts",
-    "lib/**/*.js"
+    "lib/**/*.js",
+    "styles/*.css",
+    "styles/**/*.css"
   ],
   "keywords": [
     "dom",
