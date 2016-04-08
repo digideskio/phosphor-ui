@@ -78,7 +78,7 @@ namespace WidgetMessage {
   const LayoutChanged = new Message('layout-changed');
 
   /**
-   * A singleton `'update-request'` message.
+   * A singleton conflatable `'update-request'` message.
    *
    * #### Notes
    * This message can be dispatched to supporting widgets in order to
@@ -92,7 +92,7 @@ namespace WidgetMessage {
   const UpdateRequest = new ConflatableMessage('update-request');
 
   /**
-   * A singleton `'fit-request'` message.
+   * A singleton conflatable `'fit-request'` message.
    *
    * #### Notes
    * For widgets with a layout, this message will inform the layout to
@@ -104,7 +104,7 @@ namespace WidgetMessage {
   const FitRequest = new ConflatableMessage('fit-request');
 
   /**
-   * A singleton `'close-request'` message.
+   * A singleton conflatable `'close-request'` message.
    *
    * #### Notes
    * This message should be dispatched to a widget when it should close
