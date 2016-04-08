@@ -9,6 +9,10 @@ import {
   Signal
 } from 'phosphor-core/lib/patterns/signaling';
 
+import {
+  Widget
+} from './widget';
+
 
 /**
  * An options object for initializing a title.
