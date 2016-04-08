@@ -94,7 +94,7 @@ abstract class Layout implements IDisposable {
    */
   dispose(): void {
     this._disposed = true;
-    this._parentWidget = null;
+    this._parent = null;
     clearSignalData(this);
     clearPropertyData(this);
   }
@@ -112,8 +112,8 @@ abstract class Layout implements IDisposable {
   /**
    * Get the parent widget of the layout.
    */
-  get parentWidget(): Widget {
-    return this._parentWidget;
+  get parent(): Widget {
+    return this._parent;
   }
 
   /**
@@ -123,20 +123,20 @@ abstract class Layout implements IDisposable {
    * This is set automatically when installing the layout on the parent
    * widget. The parent widget should not be set directly by user code.
    */
-  set parentWidget(value: Widget) {
+  set parent(value: Widget) {
     if (!value) {
       throw new Error('Cannot set parent widget to null.');
     }
-    if (this._parentWidget === value) {
+    if (this._parent === value) {
       return;
     }
-    if (this._parentWidget) {
+    if (this._parent) {
       throw new Error('Cannot change parent widget.');
     }
     if (value.layout !== this) {
       throw new Error('Invalid parent widget.');
     }
-    this._parentWidget = value;
+    this._parent = value;
   }
 
   /**
@@ -314,5 +314,5 @@ abstract class Layout implements IDisposable {
   protected onChildHidden(msg: ChildMessage): void { }
 
   private _disposed = false;
-  private _parentWidget: Widget = null;
+  private _parent: Widget = null;
 }

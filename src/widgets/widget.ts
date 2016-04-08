@@ -6,7 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  IIterator, iter
+  EmptyIterator, IIterator
 } from 'phosphor-core/lib/algorithm/iteration';
 
 import {
@@ -113,7 +113,7 @@ class Widget implements IDisposable, IMessageHandler {
     if (this.parent) {
       this.parent = null;
     } else if (this.isAttached) {
-      this.detach();
+      Widget.detach(this);
     }
 
     // Dispose of the widget layout.
@@ -126,6 +126,9 @@ class Widget implements IDisposable, IMessageHandler {
     clearSignalData(this);
     clearMessageData(this);
     clearPropertyData(this);
+
+    // Clear the reference to the DOM node.
+    this._node = null;
   }
 
   /**
@@ -224,9 +227,10 @@ class Widget implements IDisposable, IMessageHandler {
    * Set the parent of the widget.
    *
    * #### Notes
-   * The widget will be automatically removed from its old parent.
+   * Children are typically added to a widget by using a layout, which
+   * means user code will not normally set the parent widget directly.
    *
-   * To remove the parent entirely, set this property to `null`.
+   * The widget will be automatically removed from its old parent.
    *
    * This is a no-op if there is no effective parent change.
    */
@@ -235,7 +239,7 @@ class Widget implements IDisposable, IMessageHandler {
     if (this._parent === value) {
       return;
     }
-    if (value && this.contains(value)) {
+    if (value && Widget.contains(this, value)) {
       throw new Error('Invalid parent widget.');
     }
     if (this._parent && !this._parent.isDisposed) {
@@ -286,10 +290,17 @@ class Widget implements IDisposable, IMessageHandler {
   }
 
   /**
+   * Create an iterator over the widget's children.
    *
+   * @returns A new iterator over the children of the widget.
+   *
+   * #### Notes
+   * The widget must have a populated layout in order to have children.
+   *
+   * If a layout is not installed, the returned iterator will be empty.
    */
   children(): IIterator<Widget> {
-    return iter(this._children);
+    return this._layout ? this._layout.children() : EmptyIterator.instance;
   }
 
   /**
@@ -358,24 +369,10 @@ class Widget implements IDisposable, IMessageHandler {
   }
 
   /**
-   * Test whether a widget is a descendant of this widget.
-   *
-   * @param widget - The widget of interest.
-   *
-   * @returns `true` if the widget is a descendant, `false` otherwise.
-   */
-  contains(widget: Widget): boolean {
-    while (widget !== null) {
-      if (widget === this) {
-        return true;
-      }
-      widget = widget._parent;
-    }
-    return false;
-  }
-
-  /**
    * Post an `'update-request'` message to the widget.
+   *
+   * #### Notes
+   * This is a simple convenience method for posting the message.
    */
   update(): void {
     postMessage(this, WidgetMessage.UpdateRequest);
@@ -383,6 +380,9 @@ class Widget implements IDisposable, IMessageHandler {
 
   /**
    * Post a `'fit-request'` message to the widget.
+   *
+   * #### Notes
+   * This is a simple convenience method for posting the message.
    */
   fit(): void {
     postMessage(this, WidgetMessage.FitRequest);
@@ -390,6 +390,9 @@ class Widget implements IDisposable, IMessageHandler {
 
   /**
    * Send a `'close-request'` message to the widget.
+   *
+   * #### Notes
+   * This is a simple convenience method for sending the message.
    */
   close(): void {
     sendMessage(this, WidgetMessage.CloseRequest);
@@ -400,6 +403,8 @@ class Widget implements IDisposable, IMessageHandler {
    *
    * #### Notes
    * This causes the [[isHidden]] property to be `false`.
+   *
+   * If the widget is not explicitly hidden, this is a no-op.
    */
   show(): void {
     if (!this.testFlag(WidgetFlag.IsHidden)) {
@@ -420,15 +425,17 @@ class Widget implements IDisposable, IMessageHandler {
    *
    * #### Notes
    * This causes the [[isHidden]] property to be `true`.
+   *
+   * If the widget is explicitly hidden, this is a no-op.
    */
   hide(): void {
     if (this.testFlag(WidgetFlag.IsHidden)) {
       return;
     }
-    this.setFlag(WidgetFlag.IsHidden);
     if (this.isAttached && (!this.parent || this.parent.isVisible)) {
       sendMessage(this, WidgetMessage.BeforeHide);
     }
+    this.setFlag(WidgetFlag.IsHidden);
     this.addClass(HIDDEN_CLASS);
     if (this.parent) {
       sendMessage(this.parent, new ChildMessage('child-hidden', this));
@@ -436,13 +443,12 @@ class Widget implements IDisposable, IMessageHandler {
   }
 
   /**
-   * Set whether the widget is hidden.
+   * Show or hide the widget according to a boolean value.
    *
    * @param hidden - `true` to hide the widget, or `false` to show it.
    *
    * #### Notes
-   * `widget.setHidden(true)` is equivalent to `widget.hide()`, and
-   * `widget.setHidden(false)` is equivalent to `widget.show()`.
+   * This is a convenience method for `hide()` and `show()`.
    */
   setHidden(hidden: boolean): void {
     if (hidden) {
@@ -548,6 +554,8 @@ class Widget implements IDisposable, IMessageHandler {
    *
    * #### Notes
    * This is a no-op if the widget does not have a layout.
+   *
+   * This will not typically be called directly by user code.
    */
   protected notifyLayout(msg: Message): void {
     if (this._layout) this._layout.processParentMessage(msg);
@@ -557,7 +565,7 @@ class Widget implements IDisposable, IMessageHandler {
    * A message handler invoked on a `'close-request'` message.
    *
    * #### Notes
-   * The default implementation of this handler detaches the widget.
+   * The default implementation unparents or detaches the widget.
    */
   protected onCloseRequest(msg: Message): void {
     if (this.parent) {
@@ -635,7 +643,6 @@ class Widget implements IDisposable, IMessageHandler {
   private _node: HTMLElement;
   private _layout: Layout = null;
   private _parent: Widget = null;
-  private _children: Widget[] = null;
 }
 
 
@@ -653,43 +660,70 @@ namespace Widget {
   /**
    * Attach a widget to a host DOM node.
    *
-   * @paran
+   * @param widget - The widget of interest.
+   *
    * @param host - The DOM node to use as the widget's host.
    *
-   * @throws An error if the widget is not a root widget, if the widget
-   *   is already attached, or if the host is not attached to the DOM.
+   * #### Notes
+   * This will throw an error if the widget is not a root widget, if
+   * the widget is already attached, or if the host is not attached
+   * to the DOM.
    */
   export
   function attach(widget: Widget, host: HTMLElement): void {
-    if (this.parent) {
+    if (widget.parent) {
       throw new Error('Cannot attach child widget.');
     }
-    if (this.isAttached || document.body.contains(this.node)) {
+    if (widget.isAttached || document.body.contains(widget.node)) {
       throw new Error('Widget already attached.');
     }
     if (!document.body.contains(host)) {
       throw new Error('Host not attached.');
     }
-    host.appendChild(this.node);
-    sendMessage(this, WidgetMessage.AfterAttach);
+    host.appendChild(widget.node);
+    sendMessage(widget, WidgetMessage.AfterAttach);
   }
 
   /**
    * Detach the widget from its host DOM node.
    *
-   * @throws An error if the widget is not a root widget, or if the
-   *   widget is not attached.
+   * @param widget - The widget of interest.
+   *
+   * #### Notes
+   * This will throw an error if the widget is not a root widget, or
+   * if the widget is not attached to the DOM.
    */
   export
   function detach(widget: Widget): void {
-    if (this.parent) {
+    if (widget.parent) {
       throw new Error('Cannot detach child widget.');
     }
-    if (!this.isAttached || !document.body.contains(this.node)) {
+    if (!widget.isAttached || !document.body.contains(widget.node)) {
       throw new Error('Widget not attached.');
     }
-    sendMessage(this, WidgetMessage.BeforeDetach);
-    this.node.parentNode.removeChild(this.node);
+    sendMessage(widget, WidgetMessage.BeforeDetach);
+    widget.node.parentNode.removeChild(widget.node);
+  }
+
+  /**
+   * Test whether a widget is a descendant of another widget.
+   *
+   * @param ancestor - The ancestor widget of interest.
+   *
+   * @param widget - The descendant widget of interest.
+   *
+   * @returns `true` if the widget is a descendant of the given
+   *   ancestor widget, `false` otherwise.
+   */
+  export
+  function contains(ancestor: Widget, widget: Widget): boolean {
+    while (widget !== null) {
+      if (widget === ancestor) {
+        return true;
+      }
+      widget = widget.parent;
+    }
+    return false;
   }
 }
 
@@ -726,7 +760,7 @@ enum WidgetFlag {
  */
 namespace WidgetPrivate {
   /**
-   * An attached property for the title data for a widget.
+   * An attached property for the widget title object.
    */
   export
   const title = new AttachedProperty<Widget, Title>({
