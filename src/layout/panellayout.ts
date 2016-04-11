@@ -301,8 +301,5 @@ class PanelLayout extends Layout {
  * @param children - The vector of child widgets of interest.
  */
 function disposeChildren(children: Vector<Widget>): void {
-  let child: Widget;
-  while ((child = children.popBack()) !== void 0) {
-    child.dispose();
-  }
+  while (children.length > 0) children.popBack().dispose();
 }
