@@ -91,6 +91,8 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
    * This should be reimplemented to dispose and clear the children.
    *
    * All reimplementations should call the superclass method.
+   *
+   * This method is called automatically when the parent is disposed.
    */
   dispose(): void {
     this._disposed = true;
