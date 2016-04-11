@@ -30,16 +30,16 @@ import {
 } from 'phosphor-core/lib/patterns/messaging';
 
 import {
-  Layout
-} from './layout';
-
-import {
   ChildMessage, WidgetMessage
 } from '../widgets/messages';
 
 import {
   Widget
 } from '../widgets/widget';
+
+import {
+  Layout
+} from './layout';
 
 
 /**
