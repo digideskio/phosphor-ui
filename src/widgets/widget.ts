@@ -239,7 +239,7 @@ class Widget implements IDisposable, IMessageHandler {
     if (this._parent === value) {
       return;
     }
-    if (value && Widget.contains(this, value)) {
+    if (value && this.contains(value)) {
       throw new Error('Invalid parent widget.');
     }
     if (this._parent && !this._parent.isDisposed) {
@@ -301,6 +301,20 @@ class Widget implements IDisposable, IMessageHandler {
    */
   children(): IIterator<Widget> {
     return iter(this._layout || EmptyIterator.instance);
+  }
+
+  /**
+   * Test whether a widget is a descendant of this widget.
+   *
+   * @param widget - The descendant widget of interest.
+   *
+   * @returns `true` if the widget is a descendant, `false` otherwise.
+   */
+  contains(widget: Widget): boolean {
+    for (; widget; widget = widget._parent) {
+      if (widget === this) return true;
+    }
+    return false;
   }
 
   /**
@@ -703,27 +717,6 @@ namespace Widget {
     }
     sendMessage(widget, WidgetMessage.BeforeDetach);
     widget.node.parentNode.removeChild(widget.node);
-  }
-
-  /**
-   * Test whether a widget is a descendant of another widget.
-   *
-   * @param ancestor - The ancestor widget of interest.
-   *
-   * @param widget - The descendant widget of interest.
-   *
-   * @returns `true` if the widget is a descendant of the given
-   *   ancestor widget, `false` otherwise.
-   */
-  export
-  function contains(ancestor: Widget, widget: Widget): boolean {
-    while (widget !== null) {
-      if (widget === ancestor) {
-        return true;
-      }
-      widget = widget.parent;
-    }
-    return false;
   }
 }
 
