@@ -6,7 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  EmptyIterator, IIterator
+  EmptyIterator, IIterator, iter
 } from 'phosphor-core/lib/algorithm/iteration';
 
 import {
@@ -300,7 +300,7 @@ class Widget implements IDisposable, IMessageHandler {
    * If a layout is not installed, the returned iterator will be empty.
    */
   children(): IIterator<Widget> {
-    return this._layout ? this._layout.children() : EmptyIterator.instance;
+    return iter(this._layout || EmptyIterator.instance);
   }
 
   /**

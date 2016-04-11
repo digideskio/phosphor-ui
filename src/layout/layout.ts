@@ -6,7 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  IIterator, each
+  IIterable, IIterator, each
 } from 'phosphor-core/lib/algorithm/iteration';
 
 import {
@@ -49,16 +49,16 @@ import {
  * child widgets in a way which is meaningful for its intended use.
  */
 export
-abstract class Layout implements IDisposable {
+abstract class Layout implements IIterable<Widget>, IDisposable {
   /**
    * Create an iterator over the child widgets in the layout.
    *
-   * @returns A new iterator over the children in the layout.
+   * @returns A new iterator over the child widgets in the layout.
    *
    * #### Notes
    * This abstract method must be implemented by a subclass.
    */
-  abstract children(): IIterator<Widget>;
+  abstract iter(): IIterator<Widget>;
 
   /**
    * A message handler invoked on a `'layout-changed'` message.
@@ -201,9 +201,7 @@ abstract class Layout implements IDisposable {
    * This may be reimplemented by subclasses as needed.
    */
   protected onResize(msg: ResizeMessage): void {
-    each(this.children(), child => {
-      sendMessage(child, ResizeMessage.UnknownSize);
-    });
+    each(this, child => { sendMessage(child, ResizeMessage.UnknownSize); });
   }
 
   /**
@@ -220,9 +218,7 @@ abstract class Layout implements IDisposable {
    * This may be reimplemented by subclasses as needed.
    */
   protected onUpdateRequest(msg: Message): void {
-    each(this.children(), child => {
-      sendMessage(child, ResizeMessage.UnknownSize);
-    });
+    each(this, child => { sendMessage(child, ResizeMessage.UnknownSize); });
   }
 
   /**
@@ -236,9 +232,7 @@ abstract class Layout implements IDisposable {
    * This may be reimplemented by subclasses as needed.
    */
   protected onAfterAttach(msg: Message): void {
-    each(this.children(), child => {
-      sendMessage(child, msg);
-    });
+    each(this, child => { sendMessage(child, msg); });
   }
 
   /**
@@ -252,9 +246,7 @@ abstract class Layout implements IDisposable {
    * This may be reimplemented by subclasses as needed.
    */
   protected onBeforeDetach(msg: Message): void {
-    each(this.children(), child => {
-      sendMessage(child, msg);
-    });
+    each(this, child => { sendMessage(child, msg); });
   }
 
   /**
@@ -268,9 +260,7 @@ abstract class Layout implements IDisposable {
    * This may be reimplemented by subclasses as needed.
    */
   protected onAfterShow(msg: Message): void {
-    each(this.children(), child => {
-      if (!child.isHidden) sendMessage(child, msg);
-    });
+    each(this, child => { if (!child.isHidden) sendMessage(child, msg); });
   }
 
   /**
@@ -284,9 +274,7 @@ abstract class Layout implements IDisposable {
    * This may be reimplemented by subclasses as needed.
    */
   protected onBeforeHide(msg: Message): void {
-    each(this.children(), child => {
-      if (!child.isHidden) sendMessage(child, msg);
-    });
+    each(this, child => { if (!child.isHidden) sendMessage(child, msg); });
   }
 
   /**
