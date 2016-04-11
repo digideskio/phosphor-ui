@@ -38,22 +38,22 @@ import {
  * An abstract base class for creating Phosphor layouts.
  *
  * #### Notes
- * A layout is used to add child widgets to a parent and to arrange
- * those children within that parent's DOM node.
+ * A layout is used to add widgets to a parent and to arrange those
+ * widgets within the parent's DOM node.
  *
  * This class implements the base functionality which is required of
  * nearly all layouts. It must be subclassed in order to be useful.
  *
  * Notably, this class does not define a uniform interface for adding
- * children to the layout. A subclass should define an API for adding
- * child widgets in a way which is meaningful for its intended use.
+ * widgets to the layout. A subclass should define that API in a way
+ * which is meaningful for its intended use.
  */
 export
 abstract class Layout implements IIterable<Widget>, IDisposable {
   /**
-   * Create an iterator over the child widgets in the layout.
+   * Create an iterator over the widgets in the layout.
    *
-   * @returns A new iterator over the child widgets in the layout.
+   * @returns A new iterator over the widgets in the layout.
    *
    * #### Notes
    * This abstract method must be implemented by a subclass.
@@ -65,8 +65,8 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
    *
    * #### Notes
    * This method is invoked when the layout is installed on its parent
-   * widget. It should reparent all of the children to the new parent,
-   * and add the child DOM nodes to the parent's node as appropriate.
+   * widget. It should reparent all of the widgets to the new parent,
+   * and add their DOM nodes to the parent's node as appropriate.
    *
    * This abstract method must be implemented by a subclass.
    */
@@ -76,9 +76,9 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
    * A message handler invoked on a `'child-removed'` message.
    *
    * #### Notes
-   * This is invoked when a child widget's `parent` property is set to
-   * `null`. The layout should remove the child widget and detach its
-   * node from the DOM.
+   * This method is invoked when a child widget's `parent` property
+   * is set to `null`. The layout should remove the widget and detach
+   * its node from the DOM.
    *
    * This abstract method must be implemented by a subclass.
    */
@@ -88,7 +88,7 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
    * Dispose of the resources held by the layout.
    *
    * #### Notes
-   * This should be reimplemented to dispose and clear the children.
+   * This should be reimplemented to clear and dispose of the widgets.
    *
    * All reimplementations should call the superclass method.
    *
@@ -193,34 +193,34 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
    * A message handler invoked on a `'resize'` message.
    *
    * #### Notes
-   * The layout should ensure that its children are resized according
+   * The layout should ensure that its widgets are resized according
    * to the specified layout space, and that they are sent a `'resize'`
    * message if appropriate.
    *
    * The default implementation of this method sends an `UnknownSize`
-   * resize message to all children.
+   * resize message to all widgets.
    *
    * This may be reimplemented by subclasses as needed.
    */
   protected onResize(msg: ResizeMessage): void {
-    each(this, child => { sendMessage(child, ResizeMessage.UnknownSize); });
+    each(this, widget => { sendMessage(widget, ResizeMessage.UnknownSize); });
   }
 
   /**
    * A message handler invoked on an `'update-request'` message.
    *
    * #### Notes
-   * The layout should ensure that its children are resized according
+   * The layout should ensure that its widgets are resized according
    * to the available layout space, and that they are sent a `'resize'`
    * message if appropriate.
    *
    * The default implementation of this method sends an `UnknownSize`
-   * resize message to all children.
+   * resize message to all widgets.
    *
    * This may be reimplemented by subclasses as needed.
    */
   protected onUpdateRequest(msg: Message): void {
-    each(this, child => { sendMessage(child, ResizeMessage.UnknownSize); });
+    each(this, widget => { sendMessage(widget, ResizeMessage.UnknownSize); });
   }
 
   /**
@@ -228,13 +228,13 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
    *
    * #### Notes
    * The default implementation of this method forwards the message
-   * to all children. It assumes all child widget nodes are attached
-   * to the parent widget node.
+   * to all widgets. It assumes all widget nodes are attached to the
+   * parent widget node.
    *
    * This may be reimplemented by subclasses as needed.
    */
   protected onAfterAttach(msg: Message): void {
-    each(this, child => { sendMessage(child, msg); });
+    each(this, widget => { sendMessage(widget, msg); });
   }
 
   /**
@@ -242,41 +242,41 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
    *
    * #### Notes
    * The default implementation of this method forwards the message
-   * to all children. It assumes all child widget nodes are attached
-   * to the parent widget node.
+   * to all widgets. It assumes all widget nodes are attached to the
+   * parent widget node.
    *
    * This may be reimplemented by subclasses as needed.
    */
   protected onBeforeDetach(msg: Message): void {
-    each(this, child => { sendMessage(child, msg); });
+    each(this, widget => { sendMessage(widget, msg); });
   }
 
   /**
    * A message handler invoked on an `'after-show'` message.
    *
    * #### Notes
-   * The default implementation of this method forwards the message
-   * to all non-hidden children. It assumes all child widget nodes
-   * are attached to the parent widget node.
+   * The default implementation of this method forwards the message to
+   * all non-hidden widgets. It assumes all widget nodes are attached
+   * to the parent widget node.
    *
    * This may be reimplemented by subclasses as needed.
    */
   protected onAfterShow(msg: Message): void {
-    each(this, child => { if (!child.isHidden) sendMessage(child, msg); });
+    each(this, widget => { if (!widget.isHidden) sendMessage(widget, msg); });
   }
 
   /**
    * A message handler invoked on a `'before-hide'` message.
    *
    * #### Notes
-   * The default implementation of this method forwards the message
-   * to all non-hidden children. It assumes all child widget nodes
-   * are attached to the parent widget node.
+   * The default implementation of this method forwards the message to
+   * all non-hidden widgets. It assumes all widget nodes are attached
+   * to the parent widget node.
    *
    * This may be reimplemented by subclasses as needed.
    */
   protected onBeforeHide(msg: Message): void {
-    each(this, child => { if (!child.isHidden) sendMessage(child, msg); });
+    each(this, widget => { if (!widget.isHidden) sendMessage(widget, msg); });
   }
 
   /**
