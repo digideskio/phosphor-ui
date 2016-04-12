@@ -272,11 +272,12 @@ class Widget implements IDisposable, IMessageHandler {
    * The layout is disposed automatically when the widget is disposed.
    */
   set layout(value: Layout) {
-    if (!value) {
-      throw new Error('Cannot set widget layout to null.');
-    }
+    value = value || null;
     if (this._layout === value) {
       return;
+    }
+    if (this.testFlag(WidgetFlag.DisallowLayout)) {
+      throw new Error('Cannot set widget layout.');
     }
     if (this._layout) {
       throw new Error('Cannot change widget layout.');
@@ -744,7 +745,12 @@ enum WidgetFlag {
   /**
    * The widget is visible.
    */
-  IsVisible = 0x8
+  IsVisible = 0x8,
+
+  /**
+   * A layout cannot be set on the widget.
+   */
+  DisallowLayout = 0x10
 }
 
 
