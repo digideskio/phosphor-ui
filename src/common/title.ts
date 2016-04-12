@@ -9,16 +9,17 @@ import {
   Signal
 } from 'phosphor-core/lib/patterns/signaling';
 
-import {
-  Widget
-} from './widget';
-
 
 /**
  * An options object for initializing a title.
  */
 export
-interface ITitleOptions {
+interface ITitleOptions<T> {
+  /**
+   * The object which owns the title, if any.
+   */
+  owner?: T;
+
   /**
    * The text for the title.
    */
@@ -55,17 +56,16 @@ interface ITitleOptions {
  * which uses the widget title to populate the tab for a child widget.
  */
 export
-class Title {
+class Title<T> {
   /**
    * Construct a new title.
    *
-   * @param owner - The widget which owns the title. This may be
-   *   `null` if there is no owner for the title.
-   *
    * @param options - The options for initializing the title.
    */
-  constructor(owner: Widget, options: ITitleOptions = {}) {
-    this._owner = owner;
+  constructor(options: ITitleOptions<T> = {}) {
+    if (options.owner !== void 0) {
+      this._owner = options.owner;
+    }
     if (options.text !== void 0) {
       this._text = options.text;
     }
@@ -84,14 +84,14 @@ class Title {
   }
 
   /**
-   * Get the widget which owns the title.
+   * Get the object which owns the title.
    *
    * #### Notes
    * This will be `null` if the title has no owner.
    *
    * This is a read-only property.
    */
-  get owner(): Widget {
+  get owner(): T {
     return this._owner;
   }
 
@@ -209,7 +209,7 @@ class Title {
     Title.changed.emit(this, void 0);
   }
 
-  private _owner: Widget;
+  private _owner: T = null;
   private _text = '';
   private _icon = '';
   private _tooltip = '';
@@ -227,5 +227,5 @@ namespace Title {
    * A signal emitted when the state of the title changes.
    */
   export
-  const changed = new Signal<Title, void>();
+  const changed = new Signal<Title<any>, void>();
 }
