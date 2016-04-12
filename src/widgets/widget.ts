@@ -26,16 +26,16 @@ import {
 } from 'phosphor-core/lib/patterns/signaling';
 
 import {
+  Title
+} from '../common/title';
+
+import {
   Layout
 } from './layout';
 
 import {
   ChildMessage, ResizeMessage, WidgetMessage
 } from './messages';
-
-import {
-  Title
-} from './title';
 
 
 /**
@@ -209,7 +209,7 @@ class Widget implements IDisposable, IMessageHandler {
    *
    * This is a read-only property.
    */
-  get title(): Title {
+  get title(): Title<Widget> {
     return WidgetPrivate.title.get(this);
   }
 
@@ -749,15 +749,15 @@ enum WidgetFlag {
 
 
 /**
- * The namespace for the widget private data.
+ * The namespace for the `Widget` private data.
  */
 namespace WidgetPrivate {
   /**
    * An attached property for the widget title object.
    */
   export
-  const title = new AttachedProperty<Widget, Title>({
+  const title = new AttachedProperty<Widget, Title<Widget>>({
     name: 'title',
-    create: owner => new Title(owner),
+    create: owner => new Title({ owner }),
   });
 }
