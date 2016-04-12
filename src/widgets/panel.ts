@@ -31,15 +31,92 @@ import {
 
 import {
   ChildMessage, WidgetMessage
-} from '../widgets/messages';
-
-import {
-  Widget
-} from '../widgets/widget';
+} from './messages';
 
 import {
   Layout
 } from './layout';
+
+import {
+  Widget
+} from './widget';
+
+
+/**
+ * The class name added to Panel instances.
+ */
+const PANEL_CLASS = 'p-Panel';
+
+
+/**
+ * A simple and convenient panel widget class.
+ *
+ * #### Notes
+ * This class is suitable as a base class for implementing a variety of
+ * convenience panel widgets, but can also be used directly with CSS to
+ * arrange a collection of widgets.
+ *
+ * This class provides a convenience wrapper around a [[PanelLayout]].
+ */
+export
+class Panel extends Widget {
+  /**
+   * Create a panel layout to use with a new panel.
+   *
+   * @returns A new panel layout to use with a panel.
+   *
+   * #### Notes
+   * This may be reimplemented by a subclass to create custom layouts.
+   */
+  static createLayout(): PanelLayout {
+    return new PanelLayout();
+  }
+
+  /**
+   * Construct a new panel.
+   */
+  constructor() {
+    super();
+    this.addClass(PANEL_CLASS);
+    this.layout = (this.constructor as typeof Panel).createLayout();
+  }
+
+  /**
+   * A read-only sequence of the widgets in the panel.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get widgets(): ISequence<Widget> {
+    return (this.layout as PanelLayout).widgets;
+  }
+
+  /**
+   * Add a widget to the end of the panel.
+   *
+   * @param widget - The widget to add to the panel.
+   *
+   * #### Notes
+   * If the is already contained in the panel, it will be moved.
+   */
+  addWidget(widget: Widget): void {
+    (this.layout as PanelLayout).addWidget(widget);
+  }
+
+  /**
+   * Insert a widget at the specified index.
+   *
+   * @param index - The index at which to insert the widget.
+   *
+   * @param widget - The widget to insert into to the panel.
+   *
+   * #### Notes
+   * If the widget is already contained in the panel, it will be moved.
+   */
+  insertWidget(index: number, widget: Widget): void {
+    (this.layout as PanelLayout).insertWidget(index, widget);
+  }
+}
 
 
 /**

@@ -27,11 +27,11 @@ import {
 
 import {
   ChildMessage, ResizeMessage
-} from '../widgets/messages';
+} from './messages';
 
 import {
   Widget
-} from '../widgets/widget';
+} from './widget';
 
 
 /**

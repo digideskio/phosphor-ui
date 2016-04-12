@@ -27,7 +27,7 @@ import {
 
 import {
   Layout
-} from '../layout/layout';
+} from './layout';
 
 import {
   ChildMessage, ResizeMessage, WidgetMessage
