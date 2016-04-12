@@ -56,209 +56,226 @@ class PanelLayout extends Layout {
    * Dispose of the resources held by the layout.
    *
    * #### Notes
-   * This will dispose all child widgets in the layout.
+   * This will clear and dispose all widgets in the layout.
    *
    * All reimplementations should call the superclass method.
    *
    * This method is called automatically when the parent is disposed.
    */
   dispose(): void {
-    disposeChildren(this._children);
+    disposeWidgets(this._widgets);
     super.dispose();
   }
 
   /**
-   * A read-only sequence of the child widgets in the layout.
+   * A read-only sequence of the widgets in the layout.
    *
    * #### Notes
    * This is a read-only property.
    */
-  get children(): ISequence<Widget> {
-    return this._children;
+  get widgets(): ISequence<Widget> {
+    return this._widgets;
   }
 
   /**
-   * Create an iterator over the child widgets in the layout.
+   * Create an iterator over the widgets in the layout.
    *
-   * @returns A new iterator over the child widgets in the layout.
+   * @returns A new iterator over the widgets in the layout.
    */
   iter(): IIterator<Widget> {
-    return this._children.iter();
+    return this._widgets.iter();
   }
 
   /**
-   * Add a child widget to the end of the layout.
+   * Add a widget to the end of the layout.
    *
-   * @param child - The child widget to add to the layout.
+   * @param widget - The widget to add to the layout.
    *
    * #### Notes
-   * If the child is already contained in the layout, it will be moved.
+   * If the widget is already contained in the layout, it will be moved.
    */
-  addChild(child: Widget): void {
-    this.insertChild(this._children.length, child);
+  addWidget(widget: Widget): void {
+    this.insertWidget(this._widgets.length, widget);
   }
 
   /**
-   * Insert a child widget into the layout at the specified index.
+   * Insert a widget into the layout at the specified index.
    *
-   * @param index - The index at which to insert the child widget.
+   * @param index - The index at which to insert the widget.
    *
-   * @param child - The child widget to insert into the layout.
+   * @param widget - The widget to insert into the layout.
    *
    * #### Notes
-   * The index will be clamped to the bounds of the children.
+   * The index will be clamped to the bounds of the widgets.
    *
-   * If the child is already contained in the layout, it will be moved.
+   * If the widget is already added to the layout, it will be moved.
    */
-  insertChild(index: number, child: Widget): void {
-    // Remove the child from its current parent. If the child's
-    // parent is already the layout parent, this is a no-op.
-    child.parent = this.parent;
+  insertWidget(index: number, widget: Widget): void {
+    // Remove the widget from its current parent. This is a no-op
+    // if the widget's parent is already the layout parent widget.
+    widget.parent = this.parent;
+
+    // Lookup the current index of the widget.
+    let i = indexOf(this._widgets, widget);
 
     // Clamp the insert index to the vector bounds.
-    let n = this._children.length;
-    let j = Math.max(0, Math.min(Math.floor(index), n));
+    let j = Math.max(0, Math.min(Math.floor(index), this._widgets.length));
 
-    // Lookup the current index of the child widget.
-    let i = indexOf(this._children, child);
-
-    // If the child is not in the vector, insert it.
+    // If the widget is not in the vector, insert it.
     if (i === -1) {
-      // Insert the child into the vector.
-      this._children.insert(j, child);
+      // Insert the widget into the vector.
+      this._widgets.insert(j, widget);
 
-      // If the layout is parented, attach the child to the DOM.
-      if (this.parent) this.attachChild(j, child);
+      // If the layout is parented, attach the widget to the DOM.
+      if (this.parent) this.attachWidget(j, widget);
 
       // There is nothing more to do.
       return;
     }
 
-    // The child already exists in the vector and should be moved.
+    // Otherwise, the widget exists in the vector and should be moved.
+
     // Adjust the index if the location is at the end of the vector.
-    if (j === n) j--;
+    if (j === this._widgets.length) j--;
 
     // Bail if there is no effective move.
     if (i === j) return;
 
-    // Move the vector element to the new location.
-    move(this._children, i, j);
+    // Move the widget to the new location.
+    move(this._widgets, i, j);
 
-    // If the layout is parented, move the child in the DOM.
-    if (this.parent) this.moveChild(i, j, child);
+    // If the layout is parented, move the widget in the DOM.
+    if (this.parent) this.moveWidget(i, j, widget);
   }
 
   /**
-   * Remove a child widget from the layout.
+   * Remove a widget from the layout.
    *
-   * @param child - The child widget to remove from the layout.
+   * @param widget - The widget to remove from the layout.
    *
    * #### Notes
-   * A child widget will be removed from the layout automatically when
-   * its `parent` is set to `null`. This method should only be invoked
-   * directly when removing a widget from a layout which has yet to be
-   * installed on a parent widget.
+   * A widget is automatically removed from the layout when its `parent`
+   * is set to `null`. This method should only be invoked directly when
+   * removing a widget from a layout which has yet to be installed on a
+   * parent widget.
    *
    * This method does *not* modify the widget's `parent`.
    *
-   * If the child is not contained in the layout, this is a no-op.
+   * If the widget is not contained in the layout, this is a no-op.
    */
-  removeChild(child: Widget): void {
-    // Find the index of the specified child.
-    let i = indexOf(this._children, child);
+  removeWidget(widget: Widget): void {
+    // Find the index of the specified widget.
+    let i = indexOf(this._widgets, widget);
 
-    // Bail if the child is not in the vector.
+    // Bail if the widget is not in the vector.
     if (i === -1) {
       return;
     }
 
-    // Remove the child from the vector.
-    this._children.remove(i);
+    // Remove the widget from the vector.
+    this._widgets.remove(i);
 
-    // If the layout is parented, detach the child from the DOM.
-    if (this.parent) this.detachChild(i, child);
+    // If the layout is parented, detach the widget from the DOM.
+    if (this.parent) this.detachWidget(i, widget);
   }
 
   /**
-   * Attach a child widget to the parent's DOM node.
+   * Attach a widget to the parent's DOM node.
    *
-   * @param index - The current index of the child in the layout.
+   * @param index - The current index of the widget in the layout.
    *
-   * @param child - The child widget to attach to the parent.
+   * @param widget - The widget to attach to the parent.
    *
    * #### Notes
    * This method is called automatically by the panel layout at the
    * appropriate time. It should not be called directly by user code.
    *
-   * The default implementation adds the child's node to the parent's
+   * The default implementation adds the widgets's node to the parent's
    * node at the proper location, and sends an `'after-attach'` message
-   * to the child if the parent is attached to the DOM.
+   * to the widget if the parent is attached to the DOM.
    *
-   * Subclasses may reimplement this method to control how the child's
+   * Subclasses may reimplement this method to control how the widget's
    * node is added to the parent's node, but the reimplementation must
-   * send an `'after-attach'` message to the child if the parent is
+   * send an `'after-attach'` message to the widget if the parent is
    * attached to the DOM.
    */
-  protected attachChild(index: number, child: Widget): void {
+  protected attachWidget(index: number, widget: Widget): void {
+    // Lookup the next sibling reference node.
     let ref = this.parent.node.children[index];
-    this.parent.node.insertBefore(child.node, ref);
-    if (this.parent.isAttached) sendMessage(child, WidgetMessage.AfterAttach);
+
+    // Insert the widget's node before the sibling.
+    this.parent.node.insertBefore(widget.node, ref);
+
+    // Send an `'after-attach'` message if the parent is attached.
+    if (this.parent.isAttached) sendMessage(widget, WidgetMessage.AfterAttach);
   }
 
   /**
-   * Move a child widget in the parent's DOM node.
+   * Move a widget in the parent's DOM node.
    *
-   * @param fromIndex - The previous index of the child in the layout.
+   * @param fromIndex - The previous index of the widget in the layout.
    *
-   * @param toIndex - The current index of the child in the layout.
+   * @param toIndex - The current index of the widget in the layout.
    *
-   * @param child - The child widget to move in the parent.
+   * @param widget - The widget to move in the parent.
    *
    * #### Notes
    * This method is called automatically by the panel layout at the
    * appropriate time. It should not be called directly by user code.
    *
-   * The default implementation moves the child's node to the proper
+   * The default implementation moves the widget's node to the proper
    * location in the parent's node and sends both a `'before-detach'`
-   * and an `'after-attach'` message to the child if the parent is
+   * and an `'after-attach'` message to the widget if the parent is
    * attached to the DOM.
    *
-   * Subclasses may reimplement this method to control how the child's
+   * Subclasses may reimplement this method to control how the widget's
    * node is moved in the parent's node, but the reimplementation must
    * send both a `'before-detach'` and an `'after-attach'` message to
-   * the child if the parent is attached to the DOM.
+   * the widget if the parent is attached to the DOM.
    */
-  protected moveChild(fromIndex: number, toIndex: number, child: Widget): void {
-    if (this.parent.isAttached) sendMessage(child, WidgetMessage.BeforeDetach);
-    this.parent.node.removeChild(child.node);
+  protected moveWidget(fromIndex: number, toIndex: number, widget: Widget): void {
+    // Send a `'before-detach'` message if the parent is attached.
+    if (this.parent.isAttached) sendMessage(widget, WidgetMessage.BeforeDetach);
+
+    // Remove the widget's node from the parent.
+    this.parent.node.removeChild(widget.node);
+
+    // Lookup the next sibling reference node.
     let ref = this.parent.node.children[toIndex];
-    this.parent.node.insertBefore(child.node, ref);
-    if (this.parent.isAttached) sendMessage(child, WidgetMessage.AfterAttach);
+
+    // Insert the widget's node before the sibling.
+    this.parent.node.insertBefore(widget.node, ref);
+
+    // Send an `'after-attach'` message if the parent is attached.
+    if (this.parent.isAttached) sendMessage(widget, WidgetMessage.AfterAttach);
   }
 
   /**
-   * Detach a child widget from the parent's DOM node.
+   * Detach a widget from the parent's DOM node.
    *
-   * @param index - The previous index of the child in the layout.
+   * @param index - The previous index of the widget in the layout.
    *
-   * @param child - The child widget to detach from the parent.
+   * @param widget - The widget to detach from the parent.
    *
    * #### Notes
    * This method is called automatically by the panel layout at the
    * appropriate time. It should not be called directly by user code.
    *
-   * The default implementation removes the child's node from the
-   * parent's node, and sends a `'before-detach'` message to the child
+   * The default implementation removes the widget's node from the
+   * parent's node, and sends a `'before-detach'` message to the widget
    * if the parent is attached to the DOM.
    *
-   * Subclasses may reimplement this method to control how the child's
+   * Subclasses may reimplement this method to control how the widget's
    * node is removed from the parent's node, but the reimplementation
-   * must send a `'before-detach'` message to the child if the parent
+   * must send a `'before-detach'` message to the widget if the parent
    * is attached to the DOM.
    */
-  protected detachChild(index: number, child: Widget): void {
-    if (this.parent.isAttached) sendMessage(child, WidgetMessage.BeforeDetach);
-    this.parent.node.removeChild(child.node);
+  protected detachWidget(index: number, widget: Widget): void {
+    // Send a `'before-detach'` message if the parent is attached.
+    if (this.parent.isAttached) sendMessage(widget, WidgetMessage.BeforeDetach);
+
+    // Remove the widget's node from the parent.
+    this.parent.node.removeChild(widget.node);
   }
 
   /**
@@ -267,15 +284,15 @@ class PanelLayout extends Layout {
    * #### Notes
    * This is called when the layout is installed on its parent.
    *
-   * The default implementation attaches all children to the DOM.
+   * The default implementation attaches all widgets to the DOM.
    *
    * This may be reimplemented by subclasses as needed.
    */
   protected onLayoutChanged(msg: Message): void {
-    for (let i = 0; i < this._children.length; ++i) {
-      let child = this._children.at(i);
-      child.parent = this.parent;
-      this.attachChild(i, child);
+    for (let i = 0; i < this._widgets.length; ++i) {
+      let widget = this._widgets.at(i);
+      widget.parent = this.parent;
+      this.attachWidget(i, widget);
     }
   }
 
@@ -283,23 +300,23 @@ class PanelLayout extends Layout {
    * A message handler invoked on a `'child-removed'` message.
    *
    * #### Notes
-   * This will remove the child from the layout.
+   * This will remove the child widget from the layout.
    *
    * Subclasses should **not** typically reimplement this method.
    */
   protected onChildRemoved(msg: ChildMessage): void {
-    this.removeChild(msg.child);
+    this.removeWidget(msg.child);
   }
 
-  private _children = new Vector<Widget>();
+  private _widgets = new Vector<Widget>();
 }
 
 
 /**
- * Remove and dispose of all children in a vector.
+ * Clear and dispose of all widgets in a vector.
  *
- * @param children - The vector of child widgets of interest.
+ * @param widgets - The vector of widgets of interest.
  */
-function disposeChildren(children: Vector<Widget>): void {
-  while (children.length > 0) children.popBack().dispose();
+function disposeWidgets(widgets: Vector<Widget>): void {
+  while (widgets.length > 0) widgets.popBack().dispose();
 }
