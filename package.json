@@ -7,6 +7,7 @@
   },
   "devDependencies": {
     "coveralls": "^2.11.9",
+    "css-loader": "^0.23.1",
     "expect.js": "^0.3.1",
     "istanbul-instrumenter-loader": "^0.2.0",
     "karma": "^0.13.22",
@@ -19,6 +20,7 @@
     "karma-webpack": "^1.7.0",
     "mocha": "^2.4.5",
     "rimraf": "^2.5.2",
+    "style-loader": "^0.13.1",
     "typescript": "^1.8.0",
     "webpack": "^1.12.14"
   },
@@ -26,6 +28,7 @@
     "clean:src": "rimraf lib",
     "clean:test": "rimraf test/build && rimraf test/coverage",
     "clean": "npm run clean:src && npm run clean:test",
+    "build:example": "tsc --project example/_tsconfig.json && webpack --config example/_webpack.conf.js",
     "build:src": "tsc --project src/_tsconfig.json",
     "build:test": "tsc --project test/src/_tsconfig.json",
     "build": "npm run build:src && npm run build:test",
