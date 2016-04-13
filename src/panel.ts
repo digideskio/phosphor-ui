@@ -30,11 +30,7 @@ import {
 } from 'phosphor-core/lib/vector';
 
 import {
-  Layout
-} from './layout';
-
-import {
-  ChildMessage, WidgetMessage, Widget
+  ChildMessage, Layout, WidgetMessage, Widget
 } from './widget';
 
 
