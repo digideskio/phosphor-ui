@@ -30,7 +30,7 @@ import {
 } from 'phosphor-core/lib/vector';
 
 import {
-  ChildMessage, Layout, WidgetMessage, Widget
+  ChildMessage, Layout, Widget, WidgetMessage
 } from './widget';
 
 
@@ -132,7 +132,9 @@ class PanelLayout extends Layout {
    * This method is called automatically when the parent is disposed.
    */
   dispose(): void {
-    disposeWidgets(this._widgets);
+    while (this._widgets.length > 0) {
+      this._widgets.popBack().dispose();
+    }
     super.dispose();
   }
 
@@ -378,14 +380,4 @@ class PanelLayout extends Layout {
   }
 
   private _widgets = new Vector<Widget>();
-}
-
-
-/**
- * Clear and dispose of all widgets in a vector.
- *
- * @param widgets - The vector of widgets of interest.
- */
-function disposeWidgets(widgets: Vector<Widget>): void {
-  while (widgets.length > 0) widgets.popBack().dispose();
 }
