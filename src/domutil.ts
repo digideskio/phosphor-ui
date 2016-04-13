@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 import {
   DisposableDelegate, IDisposable
-} from 'phosphor-core/lib/patterns/disposable';
+} from 'phosphor-core/lib/disposable';
 
 
 /**

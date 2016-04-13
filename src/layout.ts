@@ -6,31 +6,27 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  IIterable, IIterator, each
-} from 'phosphor-core/lib/algorithm/iteration';
+  IDisposable
+} from 'phosphor-core/lib/disposable';
 
 import {
-  IDisposable
-} from 'phosphor-core/lib/patterns/disposable';
+  IIterable, IIterator, each
+} from 'phosphor-core/lib/iteration';
 
 import {
   Message, sendMessage
-} from 'phosphor-core/lib/patterns/messaging';
+} from 'phosphor-core/lib/messaging';
 
 import {
   clearPropertyData
-} from 'phosphor-core/lib/patterns/properties';
+} from 'phosphor-core/lib/properties';
 
 import {
   clearSignalData
-} from 'phosphor-core/lib/patterns/signaling';
+} from 'phosphor-core/lib/signaling';
 
 import {
-  ChildMessage, ResizeMessage
-} from './messages';
-
-import {
-  Widget
+  ChildMessage, ResizeMessage, Widget
 } from './widget';
 
 

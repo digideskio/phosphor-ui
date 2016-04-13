@@ -7,36 +7,32 @@
 |----------------------------------------------------------------------------*/
 import {
   EmptyIterator, IIterator, iter
-} from 'phosphor-core/lib/algorithm/iteration';
+} from 'phosphor-core/lib/iteration';
 
 import {
   IDisposable
-} from 'phosphor-core/lib/patterns/disposable';
+} from 'phosphor-core/lib/disposable';
 
 import {
   ConflatableMessage, IMessageHandler, Message, clearMessageData, postMessage,
   sendMessage
-} from 'phosphor-core/lib/patterns/messaging';
+} from 'phosphor-core/lib/messaging';
 
 import {
   AttachedProperty, clearPropertyData
-} from 'phosphor-core/lib/patterns/properties';
+} from 'phosphor-core/lib/properties';
 
 import {
   Signal, clearSignalData
-} from 'phosphor-core/lib/patterns/signaling';
-
-import {
-  Title
-} from '../common/title';
+} from 'phosphor-core/lib/signaling';
 
 import {
   Layout
 } from './layout';
 
 import {
-  ChildMessage, ResizeMessage, WidgetMessage
-} from './messages';
+  Title
+} from './title';
 
 
 /**

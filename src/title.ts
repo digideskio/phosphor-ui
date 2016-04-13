@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 import {
   Signal
-} from 'phosphor-core/lib/patterns/signaling';
+} from 'phosphor-core/lib/signaling';
 
 
 /**

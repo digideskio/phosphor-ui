@@ -7,38 +7,34 @@
 |----------------------------------------------------------------------------*/
 import {
   IIterator
-} from 'phosphor-core/lib/algorithm/iteration';
-
-import {
-  move
-} from 'phosphor-core/lib/algorithm/mutation';
-
-import {
-  indexOf
-} from 'phosphor-core/lib/algorithm/searching';
-
-import {
-  ISequence
-} from 'phosphor-core/lib/algorithm/sequence';
-
-import {
-  Vector
-} from 'phosphor-core/lib/collections/vector';
+} from 'phosphor-core/lib/iteration';
 
 import {
   Message, sendMessage
-} from 'phosphor-core/lib/patterns/messaging';
+} from 'phosphor-core/lib/messaging';
 
 import {
-  ChildMessage, WidgetMessage
-} from './messages';
+  move
+} from 'phosphor-core/lib/mutation';
+
+import {
+  indexOf
+} from 'phosphor-core/lib/searching';
+
+import {
+  ISequence
+} from 'phosphor-core/lib/sequence';
+
+import {
+  Vector
+} from 'phosphor-core/lib/vector';
 
 import {
   Layout
 } from './layout';
 
 import {
-  Widget
+  ChildMessage, WidgetMessage, Widget
 } from './widget';
 
 
