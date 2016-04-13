@@ -6,36 +6,29 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  EmptyIterator, IIterator, iter
-} from 'phosphor-core/lib/algorithm/iteration';
+  EmptyIterator, IIterable, IIterator, each, iter
+} from 'phosphor-core/lib/iteration';
 
 import {
   IDisposable
-} from 'phosphor-core/lib/patterns/disposable';
+} from 'phosphor-core/lib/disposable';
 
 import {
-  IMessageHandler, Message, clearMessageData, postMessage, sendMessage
-} from 'phosphor-core/lib/patterns/messaging';
+  ConflatableMessage, IMessageHandler, Message, clearMessageData, postMessage,
+  sendMessage
+} from 'phosphor-core/lib/messaging';
 
 import {
   AttachedProperty, clearPropertyData
-} from 'phosphor-core/lib/patterns/properties';
+} from 'phosphor-core/lib/properties';
 
 import {
   Signal, clearSignalData
-} from 'phosphor-core/lib/patterns/signaling';
+} from 'phosphor-core/lib/signaling';
 
 import {
   Title
-} from '../common/title';
-
-import {
-  Layout
-} from './layout';
-
-import {
-  ChildMessage, ResizeMessage, WidgetMessage
-} from './messages';
+} from './title';
 
 
 /**
@@ -723,6 +716,280 @@ namespace Widget {
 
 
 /**
+ * An abstract base class for creating Phosphor layouts.
+ *
+ * #### Notes
+ * A layout is used to add widgets to a parent and to arrange those
+ * widgets within the parent's DOM node.
+ *
+ * This class implements the base functionality which is required of
+ * nearly all layouts. It must be subclassed in order to be useful.
+ *
+ * Notably, this class does not define a uniform interface for adding
+ * widgets to the layout. A subclass should define that API in a way
+ * which is meaningful for its intended use.
+ */
+export
+abstract class Layout implements IIterable<Widget>, IDisposable {
+  /**
+   * Create an iterator over the widgets in the layout.
+   *
+   * @returns A new iterator over the widgets in the layout.
+   *
+   * #### Notes
+   * This abstract method must be implemented by a subclass.
+   */
+  abstract iter(): IIterator<Widget>;
+
+  /**
+   * A message handler invoked on a `'layout-changed'` message.
+   *
+   * #### Notes
+   * This method is invoked when the layout is installed on its parent
+   * widget. It should reparent all of the widgets to the new parent,
+   * and add their DOM nodes to the parent's node as appropriate.
+   *
+   * This abstract method must be implemented by a subclass.
+   */
+  protected abstract onLayoutChanged(msg: Message): void;
+
+  /**
+   * A message handler invoked on a `'child-removed'` message.
+   *
+   * #### Notes
+   * This method is invoked when a child widget's `parent` property
+   * is set to `null`. The layout should remove the widget and detach
+   * its node from the DOM.
+   *
+   * This abstract method must be implemented by a subclass.
+   */
+  protected abstract onChildRemoved(msg: ChildMessage): void;
+
+  /**
+   * Dispose of the resources held by the layout.
+   *
+   * #### Notes
+   * This should be reimplemented to clear and dispose of the widgets.
+   *
+   * All reimplementations should call the superclass method.
+   *
+   * This method is called automatically when the parent is disposed.
+   */
+  dispose(): void {
+    this._disposed = true;
+    this._parent = null;
+    clearSignalData(this);
+    clearPropertyData(this);
+  }
+
+  /**
+   * Test whether the layout is disposed.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get isDisposed(): boolean {
+    return this._disposed;
+  }
+
+  /**
+   * Get the parent widget of the layout.
+   */
+  get parent(): Widget {
+    return this._parent;
+  }
+
+  /**
+   * Set the parent widget of the layout.
+   *
+   * #### Notes
+   * This is set automatically when installing the layout on the parent
+   * widget. The parent widget should not be set directly by user code.
+   */
+  set parent(value: Widget) {
+    if (!value) {
+      throw new Error('Cannot set parent widget to null.');
+    }
+    if (this._parent === value) {
+      return;
+    }
+    if (this._parent) {
+      throw new Error('Cannot change parent widget.');
+    }
+    if (value.layout !== this) {
+      throw new Error('Invalid parent widget.');
+    }
+    this._parent = value;
+  }
+
+  /**
+   * Process a message sent to the parent widget.
+   *
+   * @param msg - The message sent to the parent widget.
+   *
+   * #### Notes
+   * This method is called by the parent widget to process a message.
+   *
+   * Subclasses may reimplement this method as needed.
+   */
+  processParentMessage(msg: Message): void {
+    switch (msg.type) {
+    case 'resize':
+      this.onResize(msg as ResizeMessage);
+      break;
+    case 'update-request':
+      this.onUpdateRequest(msg);
+      break;
+    case 'fit-request':
+      this.onFitRequest(msg);
+      break;
+    case 'after-show':
+      this.onAfterShow(msg);
+      break;
+    case 'before-hide':
+      this.onBeforeHide(msg);
+      break;
+    case 'after-attach':
+      this.onAfterAttach(msg);
+      break;
+    case 'before-detach':
+      this.onBeforeDetach(msg);
+      break;
+    case 'child-removed':
+      this.onChildRemoved(msg as ChildMessage);
+      break;
+    case 'child-shown':
+      this.onChildShown(msg as ChildMessage);
+      break;
+    case 'child-hidden':
+      this.onChildHidden(msg as ChildMessage);
+      break;
+    case 'layout-changed':
+      this.onLayoutChanged(msg);
+      break;
+    }
+  }
+
+  /**
+   * A message handler invoked on a `'resize'` message.
+   *
+   * #### Notes
+   * The layout should ensure that its widgets are resized according
+   * to the specified layout space, and that they are sent a `'resize'`
+   * message if appropriate.
+   *
+   * The default implementation of this method sends an `UnknownSize`
+   * resize message to all widgets.
+   *
+   * This may be reimplemented by subclasses as needed.
+   */
+  protected onResize(msg: ResizeMessage): void {
+    each(this, widget => { sendMessage(widget, ResizeMessage.UnknownSize); });
+  }
+
+  /**
+   * A message handler invoked on an `'update-request'` message.
+   *
+   * #### Notes
+   * The layout should ensure that its widgets are resized according
+   * to the available layout space, and that they are sent a `'resize'`
+   * message if appropriate.
+   *
+   * The default implementation of this method sends an `UnknownSize`
+   * resize message to all widgets.
+   *
+   * This may be reimplemented by subclasses as needed.
+   */
+  protected onUpdateRequest(msg: Message): void {
+    each(this, widget => { sendMessage(widget, ResizeMessage.UnknownSize); });
+  }
+
+  /**
+   * A message handler invoked on an `'after-attach'` message.
+   *
+   * #### Notes
+   * The default implementation of this method forwards the message
+   * to all widgets. It assumes all widget nodes are attached to the
+   * parent widget node.
+   *
+   * This may be reimplemented by subclasses as needed.
+   */
+  protected onAfterAttach(msg: Message): void {
+    each(this, widget => { sendMessage(widget, msg); });
+  }
+
+  /**
+   * A message handler invoked on a `'before-detach'` message.
+   *
+   * #### Notes
+   * The default implementation of this method forwards the message
+   * to all widgets. It assumes all widget nodes are attached to the
+   * parent widget node.
+   *
+   * This may be reimplemented by subclasses as needed.
+   */
+  protected onBeforeDetach(msg: Message): void {
+    each(this, widget => { sendMessage(widget, msg); });
+  }
+
+  /**
+   * A message handler invoked on an `'after-show'` message.
+   *
+   * #### Notes
+   * The default implementation of this method forwards the message to
+   * all non-hidden widgets. It assumes all widget nodes are attached
+   * to the parent widget node.
+   *
+   * This may be reimplemented by subclasses as needed.
+   */
+  protected onAfterShow(msg: Message): void {
+    each(this, widget => { if (!widget.isHidden) sendMessage(widget, msg); });
+  }
+
+  /**
+   * A message handler invoked on a `'before-hide'` message.
+   *
+   * #### Notes
+   * The default implementation of this method forwards the message to
+   * all non-hidden widgets. It assumes all widget nodes are attached
+   * to the parent widget node.
+   *
+   * This may be reimplemented by subclasses as needed.
+   */
+  protected onBeforeHide(msg: Message): void {
+    each(this, widget => { if (!widget.isHidden) sendMessage(widget, msg); });
+  }
+
+  /**
+   * A message handler invoked on a `'fit-request'` message.
+   *
+   * #### Notes
+   * The default implementation of this handler is a no-op.
+   */
+  protected onFitRequest(msg: Message): void { }
+
+  /**
+   * A message handler invoked on a `'child-shown'` message.
+   *
+   * #### Notes
+   * The default implementation of this handler is a no-op.
+   */
+  protected onChildShown(msg: ChildMessage): void { }
+
+  /**
+   * A message handler invoked on a `'child-hidden'` message.
+   *
+   * #### Notes
+   * The default implementation of this handler is a no-op.
+   */
+  protected onChildHidden(msg: ChildMessage): void { }
+
+  private _disposed = false;
+  private _parent: Widget = null;
+}
+
+
+/**
  * An enum of widget bit flags.
  */
 export
@@ -751,6 +1018,200 @@ enum WidgetFlag {
    * A layout cannot be set on the widget.
    */
   DisallowLayout = 0x10
+}
+
+
+/**
+ * A collection of stateless messages related to widgets.
+ */
+export
+namespace WidgetMessage {
+  /**
+   * A singleton `'after-show'` message.
+   *
+   * #### Notes
+   * This message is sent to a widget after it becomes visible.
+   *
+   * This message is **not** sent when the widget is being attached.
+   */
+  export
+  const AfterShow = new Message('after-show');
+
+  /**
+   * A singleton `'before-hide'` message.
+   *
+   * #### Notes
+   * This message is sent to a widget before it becomes not-visible.
+   *
+   * This message is **not** sent when the widget is being detached.
+   */
+  export
+  const BeforeHide = new Message('before-hide');
+
+  /**
+   * A singleton `'after-attach'` message.
+   *
+   * #### Notes
+   * This message is sent to a widget after it is attached.
+   */
+  export
+  const AfterAttach = new Message('after-attach');
+
+  /**
+   * A singleton `'before-detach'` message.
+   *
+   * #### Notes
+   * This message is sent to a widget before it is detached.
+   */
+  export
+  const BeforeDetach = new Message('before-detach');
+
+  /**
+   * A singleton `'parent-changed'` message.
+   *
+   * #### Notes
+   * This message is sent to a widget when its parent has changed.
+   */
+  export
+  const ParentChanged = new Message('parent-changed');
+
+  /**
+   * A singleton `'layout-changed'` message.
+   *
+   * #### Notes
+   * This message is sent to a widget when its layout has changed.
+   */
+  export
+  const LayoutChanged = new Message('layout-changed');
+
+  /**
+   * A singleton conflatable `'update-request'` message.
+   *
+   * #### Notes
+   * This message can be dispatched to supporting widgets in order to
+   * update their content based on the current widget state. Not all
+   * widgets will respond to messages of this type.
+   *
+   * For widgets with a layout, this message will inform the layout to
+   * update the position and size of its child widgets.
+   */
+  export
+  const UpdateRequest = new ConflatableMessage('update-request');
+
+  /**
+   * A singleton conflatable `'fit-request'` message.
+   *
+   * #### Notes
+   * For widgets with a layout, this message will inform the layout to
+   * recalculate its size constraints to fit the space requirements of
+   * its child widgets, and to update their position and size. Not all
+   * layouts will respond to messages of this type.
+   */
+  export
+  const FitRequest = new ConflatableMessage('fit-request');
+
+  /**
+   * A singleton conflatable `'close-request'` message.
+   *
+   * #### Notes
+   * This message should be dispatched to a widget when it should close
+   * and remove itself from the widget hierarchy.
+   */
+  export
+  const CloseRequest = new ConflatableMessage('close-request');
+}
+
+
+/**
+ * A message class for child related messages.
+ */
+export
+class ChildMessage extends Message {
+  /**
+   * Construct a new child message.
+   *
+   * @param type - The message type.
+   *
+   * @param child - The child widget for the message.
+   */
+  constructor(type: string, child: Widget) {
+    super(type);
+    this._child = child;
+  }
+
+  /**
+   * The child widget for the message.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get child(): Widget {
+    return this._child;
+  }
+
+  private _child: Widget;
+}
+
+
+/**
+ * A message class for `'resize'` messages.
+ */
+export
+class ResizeMessage extends Message {
+  /**
+   * Construct a new resize message.
+   *
+   * @param width - The **offset width** of the widget, or `-1` if
+   *   the width is not known.
+   *
+   * @param height - The **offset height** of the widget, or `-1` if
+   *   the height is not known.
+   */
+  constructor(width: number, height: number) {
+    super('resize');
+    this._width = width;
+    this._height = height;
+  }
+
+  /**
+   * The offset width of the widget.
+   *
+   * #### Notes
+   * This will be `-1` if the width is unknown.
+   *
+   * This is a read-only property.
+   */
+  get width(): number {
+    return this._width;
+  }
+
+  /**
+   * The offset height of the widget.
+   *
+   * #### Notes
+   * This will be `-1` if the height is unknown.
+   *
+   * This is a read-only property.
+   */
+  get height(): number {
+    return this._height;
+  }
+
+  private _width: number;
+  private _height: number;
+}
+
+
+/**
+ * The namespace for the `ResizeMessage` class statics.
+ */
+export
+namespace ResizeMessage {
+  /**
+   * A singleton `'resize'` message with an unknown size.
+   */
+  export
+  const UnknownSize = new ResizeMessage(-1, -1);
 }
 
 

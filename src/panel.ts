@@ -7,38 +7,30 @@
 |----------------------------------------------------------------------------*/
 import {
   IIterator
-} from 'phosphor-core/lib/algorithm/iteration';
-
-import {
-  move
-} from 'phosphor-core/lib/algorithm/mutation';
-
-import {
-  indexOf
-} from 'phosphor-core/lib/algorithm/searching';
-
-import {
-  ISequence
-} from 'phosphor-core/lib/algorithm/sequence';
-
-import {
-  Vector
-} from 'phosphor-core/lib/collections/vector';
+} from 'phosphor-core/lib/iteration';
 
 import {
   Message, sendMessage
-} from 'phosphor-core/lib/patterns/messaging';
+} from 'phosphor-core/lib/messaging';
 
 import {
-  ChildMessage, WidgetMessage
-} from './messages';
+  move
+} from 'phosphor-core/lib/mutation';
 
 import {
-  Layout
-} from './layout';
+  indexOf
+} from 'phosphor-core/lib/searching';
 
 import {
-  Widget
+  ISequence
+} from 'phosphor-core/lib/sequence';
+
+import {
+  Vector
+} from 'phosphor-core/lib/vector';
+
+import {
+  ChildMessage, Layout, Widget, WidgetMessage
 } from './widget';
 
 
@@ -140,7 +132,9 @@ class PanelLayout extends Layout {
    * This method is called automatically when the parent is disposed.
    */
   dispose(): void {
-    disposeWidgets(this._widgets);
+    while (this._widgets.length > 0) {
+      this._widgets.popBack().dispose();
+    }
     super.dispose();
   }
 
@@ -386,14 +380,4 @@ class PanelLayout extends Layout {
   }
 
   private _widgets = new Vector<Widget>();
-}
-
-
-/**
- * Clear and dispose of all widgets in a vector.
- *
- * @param widgets - The vector of widgets of interest.
- */
-function disposeWidgets(widgets: Vector<Widget>): void {
-  while (widgets.length > 0) widgets.popBack().dispose();
 }

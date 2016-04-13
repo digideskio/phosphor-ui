@@ -4,5 +4,7 @@
 docs/api
 lib
 node_modules
+example/bundle.js
+example/index.js
 test/build
 test/coverage
