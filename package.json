@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "The low-level ui functionality of the PhosphorJS project.",
   "dependencies": {
-    "phosphor-core": "^0.3.0"
+    "phosphor-core": "^0.4.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.9",
@@ -26,8 +26,8 @@
     "clean:src": "rimraf lib",
     "clean:test": "rimraf test/build && rimraf test/coverage",
     "clean": "npm run clean:src && npm run clean:test",
-    "build:src": "tsc --project src",
-    "build:test": "tsc --project test/src",
+    "build:src": "tsc --project src/_tsconfig.json",
+    "build:test": "tsc --project test/src/_tsconfig.json",
     "build": "npm run build:src && npm run build:test",
     "test:chrome": "echo 'no tests defined'",
     "test:coverage": "echo 'no tests defined'",
