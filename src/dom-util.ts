@@ -5,58 +5,6 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
-import {
-  DisposableDelegate, IDisposable
-} from 'phosphor-core/lib/disposable';
-
-
-/**
- * The class name added to the document body during cursor override.
- */
-const OVERRIDE_CURSOR_CLASS = 'p-mod-override-cursor';
-
-
-/**
- * The id for the active cursor override.
- */
-let overrideID = 0;
-
-
-/**
- * Override the cursor for the entire document.
- *
- * @param cursor - The string representing the cursor style.
- *
- * @returns A disposable which will clear the override when disposed.
- *
- * #### Notes
- * The most recent call to `overrideCursor` takes precedence. Disposing
- * an old override is a no-op and will not effect the current override.
- *
- * #### Example
- * ```typescript
- * import { overrideCursor } from 'phosphor-domutil';
- *
- * // force the cursor to be 'wait' for the entire document
- * let override = overrideCursor('wait');
- *
- * // clear the override by disposing the return value
- * override.dispose();
- * ```
- */
-export
-function overrideCursor(cursor: string): IDisposable {
-  let id = ++overrideID;
-  let body = document.body;
-  body.style.cursor = cursor;
-  body.classList.add(OVERRIDE_CURSOR_CLASS);
-  return new DisposableDelegate(() => {
-    if (id === overrideID) {
-      body.style.cursor = '';
-      body.classList.remove(OVERRIDE_CURSOR_CLASS);
-    }
-  });
-}
 
 
 /**
@@ -72,7 +20,7 @@ function overrideCursor(cursor: string): IDisposable {
  *
  * #### Example
  * ```typescript
- * import { hitTest } from 'phosphor-domutil';
+ * import { hitTest } from 'phosphor-ui/lib/dom-util';
  *
  * let div = document.createElement('div');
  * div.style.position = 'absolute';
@@ -164,7 +112,7 @@ interface IBoxSizing {
  *
  * #### Example
  * ```typescript
- * import { boxSizing } from 'phosphor-domutil';
+ * import { boxSizing } from 'phosphor-ui/lib/dom-util';
  *
  * let div = document.createElement('div');
  * div.style.borderTop = 'solid 10px black';
@@ -199,7 +147,7 @@ function boxSizing(node: HTMLElement): IBoxSizing {
     paddingRight: pr,
     paddingBottom: pb,
     horizontalSum: hs,
-    verticalSum: vs,
+    verticalSum: vs
   };
 }
 
@@ -240,7 +188,7 @@ interface ISizeLimits {
  *
  * #### Example
  * ```typescript
- * import { sizeLimits } from 'phosphor-domutil';
+ * import { sizeLimits } from 'phosphor-ui/lib/dom-util';
  *
  * let div = document.createElement('div');
  * div.style.minWidth = '90px';
@@ -259,6 +207,6 @@ function sizeLimits(node: HTMLElement): ISizeLimits {
     minWidth: parseInt(cstyle.minWidth, 10) || 0,
     minHeight: parseInt(cstyle.minHeight, 10) || 0,
     maxWidth: parseInt(cstyle.maxWidth, 10) || Infinity,
-    maxHeight: parseInt(cstyle.maxHeight, 10) || Infinity,
-  }
+    maxHeight: parseInt(cstyle.maxHeight, 10) || Infinity
+  };
 }
