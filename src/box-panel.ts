@@ -96,7 +96,7 @@ enum Direction {
   /**
    * Bottom to top direction.
    */
-  BottomToTop,
+  BottomToTop
 }
 
 
