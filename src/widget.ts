@@ -203,7 +203,7 @@ class Widget implements IDisposable, IMessageHandler {
    * This is a read-only property.
    */
   get title(): Title<Widget> {
-    return WidgetPrivate.title.get(this);
+    return WidgetPrivate.titleProperty.get(this);
   }
 
   /**
@@ -1223,7 +1223,7 @@ namespace WidgetPrivate {
    * An attached property for the widget title object.
    */
   export
-  const title = new AttachedProperty<Widget, Title<Widget>>({
+  const titleProperty = new AttachedProperty<Widget, Title<Widget>>({
     name: 'title',
     create: owner => new Title({ owner }),
   });
