@@ -516,12 +516,17 @@ class BoxLayout extends PanelLayout {
     style.maxWidth = maxW === Infinity ? 'none' : `${maxW}px`;
     style.maxHeight = maxH === Infinity ? 'none' : `${maxH}px`;
 
-    // Notify the ancestor that it should fit immediately.
+    // Set the dirty flag to ensure only a single update occurs.
+    this._dirty = true;
+
+    // Notify the ancestor that it should fit immediately. This may
+    // cause a resize of the parent, fulfilling the required update.
     let ancestor = this.parent.parent;
     if (ancestor) sendMessage(ancestor, WidgetMessage.FitRequest);
 
-    // Notify the parent that it should update immediately.
-    sendMessage(this.parent, WidgetMessage.UpdateRequest);
+    // If the dirty flag is still set, the parent was not resized.
+    // Trigger the required update on the parent widget immediately.
+    if (this._dirty) sendMessage(this.parent, WidgetMessage.UpdateRequest);
   }
 
   /**
@@ -530,6 +535,9 @@ class BoxLayout extends PanelLayout {
    * The parent offset dimensions should be `-1` if unknown.
    */
   private _update(offsetWidth: number, offsetHeight: number): void {
+    // Clear the dirty flag to indicate the update occurred.
+    this._dirty = false;
+
     // Bail early if there are no widgets to layout.
     let widgets = this.widgets;
     if (widgets.length === 0) {
@@ -601,6 +609,7 @@ class BoxLayout extends PanelLayout {
 
   private _fixed = 0;
   private _spacing = 8;
+  private _dirty = false;
   private _box: IBoxSizing = null;
   private _sizers = new Vector<BoxSizer>();
   private _direction = Direction.TopToBottom;
