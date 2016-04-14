@@ -713,7 +713,7 @@ namespace BoxLayoutPrivate {
     name: 'stretch',
     value: 0,
     coerce: (owner, value) => Math.max(0, Math.floor(value)),
-    changed: onChildPropertyChanged,
+    changed: onChildPropertyChanged
   });
 
   /**
@@ -724,7 +724,7 @@ namespace BoxLayoutPrivate {
     name: 'sizeBasis',
     value: 0,
     coerce: (owner, value) => Math.max(0, Math.floor(value)),
-    changed: onChildPropertyChanged,
+    changed: onChildPropertyChanged
   });
 
   /**
