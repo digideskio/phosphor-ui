@@ -6,8 +6,8 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  BoxPanel
-} from '../lib/box-panel';
+  SplitPanel
+} from '../lib/split-panel';
 
 import {
   Widget
@@ -27,37 +27,41 @@ function createContent(name: string): Widget {
 
 
 function main(): void {
-  let red = createContent('red');
-  let green = createContent('green');
-  let blue = createContent('blue');
-  let yellow = createContent('yellow');
+  let red1 = createContent('red');
+  let red2 = createContent('red');
 
-  BoxPanel.setStretch(red, 1);
-  BoxPanel.setStretch(green, 2);
-  BoxPanel.setStretch(blue, 3);
-  BoxPanel.setStretch(yellow, 1);
+  let yellow1 = createContent('yellow');
+  let yellow2 = createContent('yellow');
 
-  let panel = new BoxPanel();
-  panel.id = 'main';
-  panel.addWidget(red);
-  panel.addWidget(green);
-  panel.addWidget(blue);
-  panel.addWidget(yellow);
+  let green1 = createContent('green');
+  let green2 = createContent('green');
 
-  let refresh = () => {
-    if (document.documentElement.offsetWidth < 600) {
-      panel.direction = BoxPanel.TopToBottom;
-    } else {
-      panel.direction = BoxPanel.LeftToRight;
-    }
-    panel.update();
-  };
+  let blue1 = createContent('blue');
+  let blue2 = createContent('blue');
 
-  Widget.attach(panel, document.body);
+  let sp3 = new SplitPanel();
+  sp3.orientation = SplitPanel.Vertical;
+  sp3.addWidget(red1);
+  sp3.addWidget(green1);
+  sp3.addWidget(blue1);
 
-  refresh();
+  let sp2 = new SplitPanel();
+  sp2.orientation = SplitPanel.Horizontal;
+  sp2.addWidget(sp3);
+  sp2.addWidget(yellow1);
+  sp2.addWidget(red2);
 
-  window.onresize = refresh;
+  let sp1 = new SplitPanel();
+  sp1.orientation = SplitPanel.Vertical;
+  sp1.addWidget(yellow2);
+  sp1.addWidget(blue2);
+  sp1.addWidget(sp2);
+  sp1.addWidget(green2);
+  sp1.id = 'main';
+
+  Widget.attach(sp1, document.body);
+
+  window.onresize = () => { sp1.update(); };
 }
 
 
