@@ -96,12 +96,12 @@ enum Direction {
   /**
    * Bottom to top direction.
    */
-  BottomToTop,
+  BottomToTop
 }
 
 
 /**
- * A panel which arranges its children in a single row or column.
+ * A panel which arranges its widgets in a single row or column.
  *
  * #### Notes
  * This class provides a convenience wrapper around a [[BoxLayout]].
@@ -579,7 +579,7 @@ class BoxLayout extends PanelLayout {
       break;
     }
 
-    // Layout the children using the computed box sizes.
+    // Layout the widgets using the computed box sizes.
     for (let i = 0, n = widgets.length; i < n; ++i) {
       let widget = widgets.at(i);
       if (widget.isHidden) {
@@ -713,7 +713,7 @@ namespace BoxLayoutPrivate {
     name: 'stretch',
     value: 0,
     coerce: (owner, value) => Math.max(0, Math.floor(value)),
-    changed: onChildPropertyChanged,
+    changed: onChildPropertyChanged
   });
 
   /**
@@ -724,7 +724,7 @@ namespace BoxLayoutPrivate {
     name: 'sizeBasis',
     value: 0,
     coerce: (owner, value) => Math.max(0, Math.floor(value)),
-    changed: onChildPropertyChanged,
+    changed: onChildPropertyChanged
   });
 
   /**
