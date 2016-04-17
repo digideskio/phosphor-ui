@@ -14,11 +14,11 @@ import {
  * An options object for initializing a title.
  */
 export
-interface ITitleOptions<T> {
+interface ITitleOptions {
   /**
    * The object which owns the title, if any.
    */
-  owner?: T;
+  owner?: any;
 
   /**
    * The text for the title.
@@ -56,13 +56,13 @@ interface ITitleOptions<T> {
  * which uses the widget title to populate the tab for a child widget.
  */
 export
-class Title<T> {
+class Title {
   /**
    * Construct a new title.
    *
    * @param options - The options for initializing the title.
    */
-  constructor(options: ITitleOptions<T> = {}) {
+  constructor(options: ITitleOptions = {}) {
     if (options.owner !== void 0) {
       this._owner = options.owner;
     }
@@ -91,7 +91,7 @@ class Title<T> {
    *
    * This is a read-only property.
    */
-  get owner(): T {
+  get owner(): any {
     return this._owner;
   }
 
@@ -209,12 +209,12 @@ class Title<T> {
     Title.changed.emit(this, void 0);
   }
 
-  private _owner: T = null;
   private _text = '';
   private _icon = '';
   private _tooltip = '';
   private _className = '';
   private _closable = false;
+  private _owner: any = null;
 }
 
 
@@ -227,5 +227,5 @@ namespace Title {
    * A signal emitted when the state of the title changes.
    */
   export
-  const changed = new Signal<Title<any>, void>();
+  const changed = new Signal<Title, void>();
 }
