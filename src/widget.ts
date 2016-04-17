@@ -200,9 +200,11 @@ class Widget implements IDisposable, IMessageHandler {
    *
    * Since not all widgets will use the title, it is created on demand.
    *
+   * The `owner` property of the title is set to this widget.
+   *
    * This is a read-only property.
    */
-  get title(): Title<Widget> {
+  get title(): Title {
     return WidgetPrivate.titleProperty.get(this);
   }
 
@@ -1223,7 +1225,7 @@ namespace WidgetPrivate {
    * An attached property for the widget title object.
    */
   export
-  const titleProperty = new AttachedProperty<Widget, Title<Widget>>({
+  const titleProperty = new AttachedProperty<Widget, Title>({
     name: 'title',
     create: owner => new Title({ owner }),
   });
