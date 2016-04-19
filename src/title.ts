@@ -6,7 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  Signal
+  ISignal, defineSignal
 } from 'phosphor-core/lib/signaling';
 
 
@@ -84,6 +84,11 @@ class Title {
   }
 
   /**
+   * A signal emitted when the state of the title changes.
+   */
+  changed: ISignal<Title, void>;
+
+  /**
    * Get the object which owns the title.
    *
    * #### Notes
@@ -113,7 +118,7 @@ class Title {
       return;
     }
     this._text = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -137,7 +142,7 @@ class Title {
       return;
     }
     this._icon = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -158,7 +163,7 @@ class Title {
       return;
     }
     this._tooltip = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -182,7 +187,7 @@ class Title {
       return;
     }
     this._className = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -206,7 +211,7 @@ class Title {
       return;
     }
     this._closable = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   private _text = '';
@@ -218,14 +223,5 @@ class Title {
 }
 
 
-/**
- * The namespace for the `Title` class statics.
- */
-export
-namespace Title {
-  /**
-   * A signal emitted when the state of the title changes.
-   */
-  export
-  const changed = new Signal<Title, void>();
-}
+// Define the signals for the `Title` class.
+defineSignal(Title.prototype, 'changed');

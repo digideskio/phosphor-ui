@@ -10,7 +10,7 @@ import {
 } from 'phosphor-core/lib/messaging';
 
 import {
-  Signal
+  ISignal, defineSignal
 } from 'phosphor-core/lib/signaling';
 
 import {
@@ -65,6 +65,11 @@ class StackedPanel extends Panel {
   }
 
   /**
+   * A signal emitted when a widget is removed from a stacked panel.
+   */
+  widgetRemoved: ISignal<StackedPanel, Widget>;
+
+  /**
    * A message handler invoked on a `'child-added'` message.
    */
   protected onChildAdded(msg: ChildMessage): void {
@@ -76,22 +81,13 @@ class StackedPanel extends Panel {
    */
   protected onChildRemoved(msg: ChildMessage): void {
     msg.child.removeClass(CHILD_CLASS);
-    StackedPanel.widgetRemoved.emit(this, msg.child);
+    this.widgetRemoved.emit(msg.child);
   }
 }
 
 
-/**
- * The namespace for the `StackedPanel` class statics.
- */
-export
-namespace StackedPanel {
-  /**
-   * A signal emitted when a widget is removed from a stacked panel.
-   */
-  export
-  const widgetRemoved = new Signal<StackedPanel, Widget>();
-}
+// Define the signals for the `StackedPanel` class.
+defineSignal(StackedPanel.prototype, 'widgetRemoved');
 
 
 /**
