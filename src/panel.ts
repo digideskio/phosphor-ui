@@ -186,7 +186,7 @@ class PanelLayout extends Layout {
     // if the widget's parent is already the layout parent widget.
     widget.parent = this.parent;
 
-    // Lookup the current index of the widget.
+    // Look up the current index of the widget.
     let i = indexOf(this._widgets, widget);
 
     // Clamp the insert index to the vector bounds.
@@ -271,7 +271,7 @@ class PanelLayout extends Layout {
    * attached to the DOM.
    */
   protected attachWidget(index: number, widget: Widget): void {
-    // Lookup the next sibling reference node.
+    // Look up the next sibling reference node.
     let ref = this.parent.node.children[index];
 
     // Insert the widget's node before the sibling.
@@ -311,7 +311,7 @@ class PanelLayout extends Layout {
     // Remove the widget's node from the parent.
     this.parent.node.removeChild(widget.node);
 
-    // Lookup the next sibling reference node.
+    // Look up the next sibling reference node.
     let ref = this.parent.node.children[toIndex];
 
     // Insert the widget's node before the sibling.

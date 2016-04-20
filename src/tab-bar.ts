@@ -253,7 +253,7 @@ interface ITabFactory {
   updateTab(node: HTMLElement, title: Title): void;
 
   /**
-   * Lookup the close icon descendant node for a tab node.
+   * Look up the close icon descendant node for a tab node.
    *
    * @param node - A tab node created by a call to `createTab`.
    *
@@ -520,11 +520,11 @@ class TabBar extends Widget {
       return;
     }
 
-    // Lookup the previous index and title.
+    // Look up the previous index and title.
     let pi = this._currentIndex;
     let pt = pi === -1 ? null : this._titles.at(pi);
 
-    // Lookup the current index and title.
+    // Look up the current index and title.
     let ci = i;
     let ct = ci === -1 ? null : this._titles.at(ci);
 
@@ -569,7 +569,7 @@ class TabBar extends Widget {
     // Release the mouse before making any changes.
     this._releaseMouse();
 
-    // Lookup the index of the title.
+    // Look up the index of the title.
     let i = indexOf(this._titles, title);
 
     // Clamp the insert index to the vector bounds.
@@ -585,7 +585,7 @@ class TabBar extends Widget {
       this._tabs.insert(j, tab);
       this._titles.insert(j, title);
 
-      // Lookup the next sibling node.
+      // Look up the next sibling node.
       let ref = j + 1 < this._tabs.length ? this._tabs.at(j + 1) : null;
 
       // Insert the tab into the content node.
@@ -624,7 +624,7 @@ class TabBar extends Widget {
     move(this._tabs, i, j);
     move(this._titles, i, j);
 
-    // Lookup the next sibling node.
+    // Look up the next sibling node.
     let ref = j + 1 < this._tabs.length ? this._tabs.at(j + 1) : null;
 
     // Move the tab in the content node.
@@ -662,7 +662,7 @@ class TabBar extends Widget {
     // Release the mouse before making any changes.
     this._releaseMouse();
 
-    // Lookup the tab and title.
+    // Look up the tab and title.
     let tab = this._tabs.at(i);
     let title = this._titles.at(i);
 
@@ -1019,7 +1019,7 @@ class TabBar extends Widget {
       move(this._tabs, i, j);
       move(this._titles, i, j);
 
-      // Lookup the next sibling node.
+      // Look up the next sibling node.
       let ref = j + 1 < this._tabs.length ? this._tabs.at(j + 1) : null;
 
       // Move the tab in the content node.
@@ -1154,7 +1154,7 @@ class TabFactory implements ITabFactory {
   }
 
   /**
-   * Lookup the close icon descendant node for a tab node.
+   * Look up the close icon descendant node for a tab node.
    *
    * @param node - A tab node created by a call to `createTab`.
    *
