@@ -460,6 +460,8 @@ export
 interface IHandleFactory {
   /**
    * Create a new split handle for use with a split layout.
+   *
+   * @returns A new split handle node.
    */
   createHandle(): HTMLElement;
 }

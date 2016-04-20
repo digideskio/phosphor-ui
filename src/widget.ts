@@ -23,7 +23,7 @@ import {
 } from 'phosphor-core/lib/properties';
 
 import {
-  Signal, clearSignalData
+  ISignal, clearSignalData, defineSignal
 } from 'phosphor-core/lib/signaling';
 
 import {
@@ -100,7 +100,7 @@ class Widget implements IDisposable, IMessageHandler {
 
     // Set the disposed flag and emit the disposed signal.
     this.setFlag(WidgetFlag.IsDisposed);
-    Widget.disposed.emit(this, void 0);
+    this.disposed.emit(void 0);
 
     // Remove or detach the widget if necessary.
     if (this.parent) {
@@ -123,6 +123,11 @@ class Widget implements IDisposable, IMessageHandler {
     // Clear the reference to the DOM node.
     this._node = null;
   }
+
+  /**
+   * A signal emitted when the widget is disposed.
+   */
+  disposed: ISignal<Widget, void>;
 
   /**
    * Test whether the widget has been disposed.
@@ -200,9 +205,11 @@ class Widget implements IDisposable, IMessageHandler {
    *
    * Since not all widgets will use the title, it is created on demand.
    *
+   * The `owner` property of the title is set to this widget.
+   *
    * This is a read-only property.
    */
-  get title(): Title<Widget> {
+  get title(): Title {
     return WidgetPrivate.titleProperty.get(this);
   }
 
@@ -654,17 +661,15 @@ class Widget implements IDisposable, IMessageHandler {
 }
 
 
+// Define the signals for the `Widget` class.
+defineSignal(Widget.prototype, 'disposed');
+
+
 /**
  * The namespace for the `Widget` class statics.
  */
 export
 namespace Widget {
-  /**
-   * A signal emitted when the widget is disposed.
-   */
-  export
-  const disposed = new Signal<Widget, void>();
-
   /**
    * Attach a widget to a host DOM node.
    *
@@ -1223,7 +1228,7 @@ namespace WidgetPrivate {
    * An attached property for the widget title object.
    */
   export
-  const titleProperty = new AttachedProperty<Widget, Title<Widget>>({
+  const titleProperty = new AttachedProperty<Widget, Title>({
     name: 'title',
     create: owner => new Title({ owner }),
   });

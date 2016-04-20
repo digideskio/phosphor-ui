@@ -6,7 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  Signal
+  ISignal, defineSignal
 } from 'phosphor-core/lib/signaling';
 
 
@@ -14,11 +14,11 @@ import {
  * An options object for initializing a title.
  */
 export
-interface ITitleOptions<T> {
+interface ITitleOptions {
   /**
    * The object which owns the title, if any.
    */
-  owner?: T;
+  owner?: any;
 
   /**
    * The text for the title.
@@ -56,13 +56,13 @@ interface ITitleOptions<T> {
  * which uses the widget title to populate the tab for a child widget.
  */
 export
-class Title<T> {
+class Title {
   /**
    * Construct a new title.
    *
    * @param options - The options for initializing the title.
    */
-  constructor(options: ITitleOptions<T> = {}) {
+  constructor(options: ITitleOptions = {}) {
     if (options.owner !== void 0) {
       this._owner = options.owner;
     }
@@ -84,6 +84,11 @@ class Title<T> {
   }
 
   /**
+   * A signal emitted when the state of the title changes.
+   */
+  changed: ISignal<Title, void>;
+
+  /**
    * Get the object which owns the title.
    *
    * #### Notes
@@ -91,7 +96,7 @@ class Title<T> {
    *
    * This is a read-only property.
    */
-  get owner(): T {
+  get owner(): any {
     return this._owner;
   }
 
@@ -113,7 +118,7 @@ class Title<T> {
       return;
     }
     this._text = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -137,7 +142,7 @@ class Title<T> {
       return;
     }
     this._icon = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -158,7 +163,7 @@ class Title<T> {
       return;
     }
     this._tooltip = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -182,7 +187,7 @@ class Title<T> {
       return;
     }
     this._className = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
   /**
@@ -206,26 +211,17 @@ class Title<T> {
       return;
     }
     this._closable = value;
-    Title.changed.emit(this, void 0);
+    this.changed.emit(void 0);
   }
 
-  private _owner: T = null;
   private _text = '';
   private _icon = '';
   private _tooltip = '';
   private _className = '';
   private _closable = false;
+  private _owner: any = null;
 }
 
 
-/**
- * The namespace for the `Title` class statics.
- */
-export
-namespace Title {
-  /**
-   * A signal emitted when the state of the title changes.
-   */
-  export
-  const changed = new Signal<Title<any>, void>();
-}
+// Define the signals for the `Title` class.
+defineSignal(Title.prototype, 'changed');

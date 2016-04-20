@@ -81,3 +81,73 @@ body.p-mod-override-cursor * {
   min-height: 7px;
   transform: translateY(-50%);
 }
+
+
+/*-----------------------------------------------------------------------------
+| tab-bar
+|----------------------------------------------------------------------------*/
+.p-TabBar {
+  display: flex;
+  flex-direction: column;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+
+.p-TabBar-header,
+.p-TabBar-footer {
+  flex: 0 0 auto;
+}
+
+
+.p-TabBar-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+}
+
+
+.p-TabBar-content {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+
+.p-TabBar-tab {
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+
+.p-TabBar-tabIcon,
+.p-TabBar-tabCloseIcon {
+  flex: 0 0 auto;
+}
+
+
+.p-TabBar-tabText {
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+
+.p-TabBar.p-mod-dragging .p-TabBar-tab {
+  position: relative;
+  left: 0;
+  transition: left 150ms ease; /* keep in sync with JS */
+}
+
+
+.p-TabBar.p-mod-dragging .p-TabBar-tab.p-mod-dragging {
+  transition: none;
+}
+
