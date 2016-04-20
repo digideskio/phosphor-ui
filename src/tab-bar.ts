@@ -1320,15 +1320,15 @@ namespace TabBarPrivate {
       let layout = data.tabLayout[i];
       let threshold = layout.left + (layout.width >> 1);
       if (i < data.index && targetLeft < threshold) {
-        style.left = `${data.tabWidth + data.tabLayout[i + 1].margin} px`;
+        style.left = `${data.tabWidth + data.tabLayout[i + 1].margin}px`;
         targetIndex = Math.min(targetIndex, i);
       } else if (i > data.index && targetRight > threshold) {
-        style.left = `${-data.tabWidth - layout.margin} px`;
+        style.left = `${-data.tabWidth - layout.margin}px`;
         targetIndex = Math.max(targetIndex, i);
       } else if (i === data.index) {
         let ideal = event.clientX - data.pressX;
         let limit = data.contentRect.width - (data.tabLeft + data.tabWidth);
-        style.left = `${Math.max(-data.tabLeft, Math.min(ideal, limit))} px`;
+        style.left = `${Math.max(-data.tabLeft, Math.min(ideal, limit))}px`;
       } else {
         style.left = '';
       }
@@ -1353,7 +1353,7 @@ namespace TabBarPrivate {
     }
     let style = data.tab.style;
     let limit = data.contentRect.width - (data.tabLeft + data.tabWidth);
-    style.left = Math.max(-data.tabLeft, Math.min(ideal, limit)) + 'px';
+    style.left = `${Math.max(-data.tabLeft, Math.min(ideal, limit))}px`;
   }
 
   /**
