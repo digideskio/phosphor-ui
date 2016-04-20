@@ -22,7 +22,7 @@ body.p-mod-override-cursor * {
   box-sizing: border-box;
   position: relative;
   overflow: hidden; /* TODO - remove this as a default? */
-  cursor: default;
+  cursor: default; /* TODO - remove this as a default? */
 }
 
 
