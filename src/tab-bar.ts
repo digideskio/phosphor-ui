@@ -10,6 +10,10 @@ import {
 } from 'phosphor-core/lib/disposable';
 
 import {
+  each
+} from 'phosphor-core/lib/iteration';
+
+import {
   Message
 } from 'phosphor-core/lib/messaging';
 
@@ -1361,8 +1365,6 @@ namespace TabBarPrivate {
    */
   export
   function resetTabPositions(tabs: Vector<HTMLElement>): void {
-    for (let i = 0, n = tabs.length; i < n; ++i) {
-      tabs.at(i).style.left = '';
-    }
+    each(tabs, tab => { tab.style.left = ''; });
   }
 }
