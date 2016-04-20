@@ -23,15 +23,15 @@ import {
 
 import {
   BoxSizer, boxCalc
-} from './box-engine';
+} from './boxengine';
 
 import {
   IBoxSizing, boxSizing, sizeLimits
-} from './dom-util';
+} from './domutil';
 
 import {
   prepareGeometry, resetGeometry, setGeometry
-} from './layout-util';
+} from './layoututil';
 
 import {
   Panel, PanelLayout

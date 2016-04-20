@@ -39,11 +39,11 @@ import {
 
 import {
   overrideCursor
-} from './css-util';
+} from './cssutil';
 
 import {
   hitTest
-} from './dom-util';
+} from './domutil';
 
 import {
   Title
