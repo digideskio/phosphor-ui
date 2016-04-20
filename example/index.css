@@ -8,7 +8,6 @@
 body {
   margin: 0;
   padding: 0;
-  background: #F5F6F7;
 }
 
 
@@ -17,33 +16,91 @@ body {
   top: 10px;
   left: 10px;
   right: 10px;
-  bottom: 10px;
-  padding: 8px;
-  border: 1px solid black;
 }
 
 
-.content {
-  min-width: 100px;
-  min-height: 100px;
+.p-TabBar {
+  min-height: 24px;
+  max-height: 24px;
 }
 
 
-.red {
-  background: #E74C3C;
+.p-TabBar-header {
+  display: none;
 }
 
 
-.yellow {
-  background: #F1C40F;
+.p-TabBar-footer {
+  flex: 0 0 1px;
+  background: #C0C0C0;
 }
 
 
-.green {
-  background: #27AE60;
+.p-TabBar-content {
+  min-width: 0;
+  align-items: flex-end;
 }
 
 
-.blue {
-  background: #3498DB;
+.p-TabBar-tab {
+  flex: 0 1 125px;
+  min-height: 20px;
+  max-height: 20px;
+  margin-left: -1px;
+  border: 1px solid #C0C0C0;
+  border-bottom: none;
+  padding: 0px 10px;
+  background: #E5E5E5;
+  font: 12px Helvetica, Arial, sans-serif;
+}
+
+
+.p-TabBar-tab:first-child {
+  margin-left: 0;
+}
+
+
+.p-TabBar-tab.p-mod-current {
+  min-height: 23px;
+  max-height: 23px;
+  background: white;
+  transform: translateY(1px);
+}
+
+
+.p-TabBar-tab:hover:not(.p-mod-current) {
+  background: #F0F0F0;
+}
+
+
+.p-TabBar-tabIcon,
+.p-TabBar-tabText,
+.p-TabBar-tabCloseIcon {
+  line-height: 20px;
+}
+
+
+.p-TabBar-tabCloseIcon {
+  color: #505050;
+}
+
+
+.p-TabBar-tabCloseIcon:hover {
+  color: #DD2222;
+}
+
+
+.p-TabBar-tabCloseIcon:active {
+  color: #AA2222;
+}
+
+
+.p-TabBar-tab.p-mod-closable > .p-TabBar-tabCloseIcon {
+  margin-left: 4px;
+}
+
+
+.p-TabBar-tab.p-mod-closable > .p-TabBar-tabCloseIcon:before {
+  content: '\f00d';
+  font-family: FontAwesome;
 }
