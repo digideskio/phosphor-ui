@@ -505,7 +505,36 @@ class TabBar extends Widget {
    * If the value is out of range, the index will be set to `-1`.
    */
   set currentIndex(value: number) {
-    // TODO ...
+    // Coerce the value to an index.
+    let i = Math.floor(value);
+    if (i < 0 || i >= this._titles.length) {
+      i = -1;
+    }
+
+    // Bail early if the index will not change.
+    if (this._currentIndex === i) {
+      return;
+    }
+
+    // Lookup the previous index and title.
+    let pi = this._currentIndex;
+    let pt = pi === -1 ? null : this._titles.at(pi);
+
+    // Lookup the current index and title.
+    let ci = i;
+    let ct = ci === -1 ? null : this._titles.at(ci);
+
+    // Update the current index.
+    this._currentIndex = i;
+
+    // Emit the current changed signal.
+    this.currentChanged.emit({
+      previousIndex: pi, previousTitle: pt,
+      currentIndex: ci, currentTitle: ct
+    });
+
+    // Schedule an update of the tabs.
+    this.update();
   }
 
   /**
