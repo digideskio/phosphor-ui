@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 import {
   TabBar
-} from '../lib/tab-bar';
+} from '../lib/tabbar';
 
 import {
   Title
