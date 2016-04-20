@@ -224,49 +224,6 @@ interface ITabDetachArgs {
 
 
 /**
- * A factory object which creates tabs for a tab bar.
- */
-export
-interface ITabFactory {
-  /**
-   * Create a node for a tab.
-   *
-   * @returns A new node for a tab.
-   *
-   * #### Notes
-   * The data in the node should be uninitialized. The `updateTab`
-   * method will be called to initialize the data for the tab node.
-   */
-  createTab(): HTMLElement;
-
-  /**
-   * Update a tab node to reflect the state of a title.
-   *
-   * @param node - A tab node created by a call to `createTab`.
-   *
-   * @param title - The title object holding the data for the tab.
-   *
-   * #### Notes
-   * This method should completely reset the state of the tab node to
-   * reflect the data in the title.
-   */
-  updateTab(node: HTMLElement, title: Title): void;
-
-  /**
-   * Look up the close icon descendant node for a tab node.
-   *
-   * @param node - A tab node created by a call to `createTab`.
-   *
-   * @returns The close icon descendant node, or `null` if none exists.
-   *
-   * #### Notes
-   * This is used by the tab bar to detect clicks on the close icon.
-   */
-  closeIcon(node: HTMLElement): HTMLElement;
-}
-
-
-/**
  * A widget which displays titles as a row of tabs.
  */
 export
@@ -1110,7 +1067,57 @@ defineSignal(TabBar.prototype, 'tabDetachRequested');
 
 
 /**
+ * A factory object which creates tabs for a tab bar.
+ *
+ * #### Notes
+ * User code can implement a tab factory when the default tabs created
+ * by the tab bar are insufficient, or when custom tabs are desired.
+ */
+export
+interface ITabFactory {
+  /**
+   * Create a node for a tab.
+   *
+   * @returns A new node for a tab.
+   *
+   * #### Notes
+   * The data in the node should be uninitialized. The `updateTab`
+   * method will be called to initialize the data for the tab node.
+   */
+  createTab(): HTMLElement;
+
+  /**
+   * Update a tab node to reflect the state of a title.
+   *
+   * @param node - A tab node created by a call to `createTab`.
+   *
+   * @param title - The title object holding the data for the tab.
+   *
+   * #### Notes
+   * This method should completely reset the state of the tab node to
+   * reflect the data in the title.
+   */
+  updateTab(node: HTMLElement, title: Title): void;
+
+  /**
+   * Look up the close icon descendant node for a tab node.
+   *
+   * @param node - A tab node created by a call to `createTab`.
+   *
+   * @returns The close icon descendant node, or `null` if none exists.
+   *
+   * #### Notes
+   * This is used by the tab bar to detect clicks on the close icon.
+   */
+  closeIcon(node: HTMLElement): HTMLElement;
+}
+
+
+/**
  * A concrete implementation of [[ITabFactory]].
+ *
+ * #### Notes
+ * This is the default tab factory type for `TabBar`.
  */
 export
 class TabFactory implements ITabFactory {
@@ -1173,6 +1180,9 @@ export
 namespace TabFactory {
   /**
    * A singleton instance of the `TabFactory` class.
+   *
+   * #### Notes
+   * This is default tab factory instance used by `TabBar`.
    */
   export
   const instance = new TabFactory();
