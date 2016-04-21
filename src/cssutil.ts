@@ -40,12 +40,12 @@ const OVERRIDE_CURSOR_CLASS = 'p-mod-override-cursor';
  */
 export
 function overrideCursor(cursor: string): IDisposable {
-  let id = ++cursorID;
+  let id = ++Private.cursorID;
   let body = document.body;
   body.style.cursor = cursor;
   body.classList.add(OVERRIDE_CURSOR_CLASS);
   return new DisposableDelegate(() => {
-    if (id === cursorID) {
+    if (id === Private.cursorID) {
       body.style.cursor = '';
       body.classList.remove(OVERRIDE_CURSOR_CLASS);
     }
@@ -54,6 +54,11 @@ function overrideCursor(cursor: string): IDisposable {
 
 
 /**
- * The id for the active cursor override.
+ * The namespace for the private module data.
  */
-let cursorID = 0;
+namespace Private {
+  /**
+   * The id for the active cursor override.
+   */
+  export let cursorID = 0;
+}

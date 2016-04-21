@@ -210,7 +210,7 @@ class Widget implements IDisposable, IMessageHandler {
    * This is a read-only property.
    */
   get title(): Title {
-    return WidgetPrivate.titleProperty.get(this);
+    return Private.titleProperty.get(this);
   }
 
   /**
@@ -1221,9 +1221,9 @@ namespace ResizeMessage {
 
 
 /**
- * The namespace for the `Widget` private data.
+ * The namespace for the private module data.
  */
-namespace WidgetPrivate {
+namespace Private {
   /**
    * An attached property for the widget title object.
    */

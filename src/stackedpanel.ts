@@ -186,7 +186,7 @@ class StackedLayout extends PanelLayout {
    * A message handler invoked on a `'child-shown'` message.
    */
   protected onChildShown(msg: ChildMessage): void {
-    if (StackedLayoutPrivate.IsIE) { // prevent flicker on IE
+    if (Private.IsIE) { // prevent flicker on IE
       sendMessage(this.parent, WidgetMessage.FitRequest);
     } else {
       this.parent.fit();
@@ -197,7 +197,7 @@ class StackedLayout extends PanelLayout {
    * A message handler invoked on a `'child-hidden'` message.
    */
   protected onChildHidden(msg: ChildMessage): void {
-    if (StackedLayoutPrivate.IsIE) { // prevent flicker on IE
+    if (Private.IsIE) { // prevent flicker on IE
       sendMessage(this.parent, WidgetMessage.FitRequest);
     } else {
       this.parent.fit();
@@ -335,9 +335,9 @@ class StackedLayout extends PanelLayout {
 
 
 /**
- * The namespace for the `StackedLayout` class private data.
+ * The namespace for the private module data.
  */
-namespace StackedLayoutPrivate {
+namespace Private {
   /**
    * A flag indicating whether the browser is IE.
    */
