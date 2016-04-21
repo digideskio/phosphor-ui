@@ -406,7 +406,7 @@ class SplitPanel extends Panel {
     document.removeEventListener('contextmenu', this, true);
   }
 
-  private _pressData: IPressData = null;
+  private _pressData: Private.IPressData = null;
 }
 
 
@@ -500,7 +500,7 @@ class SplitLayout extends PanelLayout {
     if (!this.parent) {
       return;
     }
-    SplitLayoutPrivate.toggleOrientation(this.parent, value);
+    Private.toggleOrientation(this.parent, value);
     this.parent.fit();
   }
 
@@ -618,9 +618,9 @@ class SplitLayout extends PanelLayout {
 
     // Adjust the sizers to reflect the handle movement.
     if (delta > 0) {
-      SplitLayoutPrivate.growSizer(this._sizers, index, delta);
+      Private.growSizer(this._sizers, index, delta);
     } else {
-      SplitLayoutPrivate.shrinkSizer(this._sizers, index, -delta);
+      Private.shrinkSizer(this._sizers, index, -delta);
     }
 
     // Update the layout of the widgets.
@@ -639,9 +639,9 @@ class SplitLayout extends PanelLayout {
    */
   protected attachWidget(index: number, widget: Widget): void {
     // Create and add the handle and sizer for the new widget.
-    let handle = SplitLayoutPrivate.createHandle(this._factory);
-    let average = SplitLayoutPrivate.averageSize(this._sizers);
-    let sizer = SplitLayoutPrivate.createSizer(average);
+    let handle = Private.createHandle(this._factory);
+    let average = Private.averageSize(this._sizers);
+    let sizer = Private.createSizer(average);
     this._sizers.insert(index, sizer);
     this._handles.insert(index, handle);
 
@@ -719,7 +719,7 @@ class SplitLayout extends PanelLayout {
    * This is called when the layout is installed on its parent.
    */
   protected onLayoutChanged(msg: Message): void {
-    SplitLayoutPrivate.toggleOrientation(this.parent, this.orientation);
+    Private.toggleOrientation(this.parent, this.orientation);
     super.onLayoutChanged(msg);
   }
 
@@ -743,7 +743,7 @@ class SplitLayout extends PanelLayout {
    * A message handler invoked on a `'child-shown'` message.
    */
   protected onChildShown(msg: ChildMessage): void {
-    if (SplitLayoutPrivate.IsIE) { // prevent flicker on IE
+    if (Private.IsIE) { // prevent flicker on IE
       sendMessage(this.parent, WidgetMessage.FitRequest);
     } else {
       this.parent.fit();
@@ -754,7 +754,7 @@ class SplitLayout extends PanelLayout {
    * A message handler invoked on a `'child-hidden'` message.
    */
   protected onChildHidden(msg: ChildMessage): void {
-    if (SplitLayoutPrivate.IsIE) { // prevent flicker on IE
+    if (Private.IsIE) { // prevent flicker on IE
       sendMessage(this.parent, WidgetMessage.FitRequest);
     } else {
       this.parent.fit();
@@ -995,7 +995,7 @@ namespace SplitLayout {
    */
   export
   function getStretch(widget: Widget): number {
-    return SplitLayoutPrivate.stretchProperty.get(widget);
+    return Private.stretchProperty.get(widget);
   }
 
   /**
@@ -1007,36 +1007,36 @@ namespace SplitLayout {
    */
   export
   function setStretch(widget: Widget, value: number): void {
-    SplitLayoutPrivate.stretchProperty.set(widget, value);
+    Private.stretchProperty.set(widget, value);
   }
 }
 
 
 /**
- * An object which holds mouse press data.
+ * The namespace for the private module data.
  */
-interface IPressData {
+namespace Private {
   /**
-   * The index of the pressed handle.
+   * An object which holds mouse press data.
    */
-  index: number;
+  export
+  interface IPressData {
+    /**
+     * The index of the pressed handle.
+     */
+    index: number;
 
-  /**
-   * The offset of the press in handle coordinates.
-   */
-  delta: number;
+    /**
+     * The offset of the press in handle coordinates.
+     */
+    delta: number;
 
-  /**
-   * The disposable which will clear the override cursor.
-   */
-  override: IDisposable;
-}
+    /**
+     * The disposable which will clear the override cursor.
+     */
+    override: IDisposable;
+  }
 
-
-/**
- * The namespace for the `SplitLayout` class private data.
- */
-namespace SplitLayoutPrivate {
   /**
    * A flag indicating whether the browser is IE.
    */

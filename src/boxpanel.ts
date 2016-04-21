@@ -269,7 +269,7 @@ class BoxLayout extends PanelLayout {
     if (!this.parent) {
       return;
     }
-    BoxLayoutPrivate.toggleDirection(this.parent, value);
+    Private.toggleDirection(this.parent, value);
     this.parent.fit();
   }
 
@@ -376,7 +376,7 @@ class BoxLayout extends PanelLayout {
    * This is called when the layout is installed on its parent.
    */
   protected onLayoutChanged(msg: Message): void {
-    BoxLayoutPrivate.toggleDirection(this.parent, this.direction);
+    Private.toggleDirection(this.parent, this.direction);
     super.onLayoutChanged(msg);
   }
 
@@ -400,7 +400,7 @@ class BoxLayout extends PanelLayout {
    * A message handler invoked on a `'child-shown'` message.
    */
   protected onChildShown(msg: ChildMessage): void {
-    if (BoxLayoutPrivate.IsIE) { // prevent flicker on IE
+    if (Private.IsIE) { // prevent flicker on IE
       sendMessage(this.parent, WidgetMessage.FitRequest);
     } else {
       this.parent.fit();
@@ -411,7 +411,7 @@ class BoxLayout extends PanelLayout {
    * A message handler invoked on a `'child-hidden'` message.
    */
   protected onChildHidden(msg: ChildMessage): void {
-    if (BoxLayoutPrivate.IsIE) { // prevent flicker on IE
+    if (Private.IsIE) { // prevent flicker on IE
       sendMessage(this.parent, WidgetMessage.FitRequest);
     } else {
       this.parent.fit();
@@ -464,7 +464,7 @@ class BoxLayout extends PanelLayout {
     let minH = 0;
     let maxW = Infinity;
     let maxH = Infinity;
-    let horz = BoxLayoutPrivate.isHorizontal(this._direction);
+    let horz = Private.isHorizontal(this._direction);
     if (horz) {
       minW = this._fixed;
       maxW = nVisible > 0 ? minW : maxW;
@@ -654,7 +654,7 @@ namespace BoxLayout {
    */
   export
   function getStretch(widget: Widget): number {
-    return BoxLayoutPrivate.stretchProperty.get(widget);
+    return Private.stretchProperty.get(widget);
   }
 
   /**
@@ -666,7 +666,7 @@ namespace BoxLayout {
    */
   export
   function setStretch(widget: Widget, value: number): void {
-    BoxLayoutPrivate.stretchProperty.set(widget, value);
+    Private.stretchProperty.set(widget, value);
   }
 
   /**
@@ -678,7 +678,7 @@ namespace BoxLayout {
    */
   export
   function getSizeBasis(widget: Widget): number {
-    return BoxLayoutPrivate.sizeBasisProperty.get(widget);
+    return Private.sizeBasisProperty.get(widget);
   }
 
   /**
@@ -690,15 +690,15 @@ namespace BoxLayout {
    */
   export
   function setSizeBasis(widget: Widget, value: number): void {
-    BoxLayoutPrivate.sizeBasisProperty.set(widget, value);
+    Private.sizeBasisProperty.set(widget, value);
   }
 }
 
 
 /**
- * The namespace for the `BoxLayout` private data.
+ * The namespace for the private module data.
  */
-namespace BoxLayoutPrivate {
+namespace Private {
   /**
    * A flag indicating whether the browser is IE.
    */

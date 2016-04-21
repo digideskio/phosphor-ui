@@ -830,7 +830,7 @@ class TabBar extends Widget {
 
     // Setup the drag data if the tabs are movable.
     if (this._tabsMovable) {
-      this._dragData = new TabBarPrivate.DragData();
+      this._dragData = new Private.DragData();
       this._dragData.index = i;
       this._dragData.tab = this._tabs.at(i);
       this._dragData.pressX = event.clientX;
@@ -873,7 +873,7 @@ class TabBar extends Widget {
       data.tabLeft = data.tab.offsetLeft;
       data.tabWidth = tabRect.width;
       data.tabPressX = data.pressX - tabRect.left;
-      data.tabLayout = TabBarPrivate.snapTabLayout(this._tabs);
+      data.tabLayout = Private.snapTabLayout(this._tabs);
       data.contentRect = this.contentNode.getBoundingClientRect();
       data.override = overrideCursor('default');
 
@@ -886,7 +886,7 @@ class TabBar extends Widget {
     }
 
     // Emit the detach requested signal if the threshold is exceeded.
-    if (!data.detachRequested && TabBarPrivate.detachExceeded(data, event)) {
+    if (!data.detachRequested && Private.detachExceeded(data, event)) {
       // Only emit the signal once per drag cycle.
       data.detachRequested = true;
 
@@ -906,7 +906,7 @@ class TabBar extends Widget {
     }
 
     // Update the positions of the tab.
-    TabBarPrivate.layoutTabs(this._tabs, data, event);
+    Private.layoutTabs(this._tabs, data, event);
   }
 
   /**
@@ -941,7 +941,7 @@ class TabBar extends Widget {
     }
 
     // Position the tab at its final resting position.
-    TabBarPrivate.finalizeTabPosition(data);
+    Private.finalizeTabPosition(data);
 
     // Remove the dragging class from the tab so it can be transitioned.
     data.tab.classList.remove(DRAGGING_CLASS);
@@ -957,7 +957,7 @@ class TabBar extends Widget {
       this._dragData = null;
 
       // Reset the positions of the tabs.
-      TabBarPrivate.resetTabPositions(this._tabs);
+      Private.resetTabPositions(this._tabs);
 
       // Clear the cursor grab.
       data.override.dispose();
@@ -1031,7 +1031,7 @@ class TabBar extends Widget {
     }
 
     // Reset the tabs to their non-dragged positions.
-    TabBarPrivate.resetTabPositions(this._tabs);
+    Private.resetTabPositions(this._tabs);
 
     // Clear the cursor override.
     data.override.dispose();
@@ -1055,7 +1055,7 @@ class TabBar extends Widget {
   private _titles = new Vector<Title>();
   private _dirtyTitles= new Set<Title>();
   private _tabs = new Vector<HTMLElement>();
-  private _dragData: TabBarPrivate.DragData = null;
+  private _dragData: Private.DragData = null;
 }
 
 
@@ -1190,9 +1190,9 @@ namespace TabFactory {
 
 
 /**
- * The namespace for the `TabBar` private data.
+ * The namespace for the private module data.
  */
-namespace TabBarPrivate {
+namespace Private {
   /**
    * A struct which holds the drag data for a tab bar.
    */

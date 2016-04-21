@@ -189,11 +189,14 @@ function boxCalc(object: SequenceOrArrayLike<BoxSizer>, space: number): void {
   // Setup the sizers and compute the totals.
   for (let i = 0; i < count; ++i) {
     let sizer = sizers.at(i);
+    let min = sizer.minSize;
+    let max = sizer.maxSize;
+    let hint = sizer.sizeHint;
     sizer.done = false;
-    sizer.size = bestSize(sizer);
+    sizer.size = Math.max(min, Math.min(hint, max));
     totalSize += sizer.size;
-    totalMin += sizer.minSize;
-    totalMax += sizer.maxSize;
+    totalMin += min;
+    totalMax += max;
     if (sizer.stretch > 0) {
       totalStretch += sizer.stretch;
       stretchCount++;
@@ -337,12 +340,4 @@ function boxCalc(object: SequenceOrArrayLike<BoxSizer>, space: number): void {
       }
     }
   }
-}
-
-
-/**
- * Get the initial best size for a box sizer.
- */
-function bestSize(sizer: BoxSizer): number {
-  return Math.max(sizer.minSize, Math.min(sizer.sizeHint, sizer.maxSize));
 }

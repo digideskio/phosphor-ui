@@ -108,7 +108,7 @@ function setGeometry(widget: Widget, left: number, top: number, width: number, h
 
 
 /**
- * The namespace for the module private data.
+ * The namespace for the private module data.
  */
 namespace Private {
   /**
