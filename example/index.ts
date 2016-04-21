@@ -6,12 +6,8 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  TabBar
-} from '../lib/tabbar';
-
-import {
-  Title
-} from '../lib/title';
+  TabPanel
+} from '../lib/tabpanel';
 
 import {
   Widget
@@ -22,30 +18,35 @@ import '../styles/base.css';
 import './index.css';
 
 
-function createTitle(text: string): Title {
-  let tooltip = `This is a tooltip message for: ${text}.`;
-  return new Title({ text, tooltip, closable: true });
+function createContent(title: string): Widget {
+  let tooltip = `This is a tooltip message for: ${title}.`;
+  let widget = new Widget();
+  widget.addClass('content');
+  widget.addClass(title.toLowerCase());
+  widget.title.text = title;
+  widget.title.closable = true;
+  widget.title.tooltip = tooltip;
+  return widget;
 }
 
 
 function main(): void {
-  let tb = new TabBar();
-  tb.id = 'main';
-  tb.tabsMovable = true;
+  let red = createContent('Red');
+  let yellow = createContent('Yellow');
+  let blue = createContent('Blue');
+  let green = createContent('Green');
 
-  tb.addTab(createTitle('One'));
-  tb.addTab(createTitle('Two'));
-  tb.addTab(createTitle('Three'));
-  tb.addTab(createTitle('Four'));
-  tb.addTab(createTitle('Five'));
-  tb.addTab(createTitle('Six'));
-  tb.addTab(createTitle('Seven'));
+  let panel = new TabPanel();
+  panel.id = 'main';
+  panel.tabsMovable = true;
+  panel.addWidget(red);
+  panel.addWidget(yellow);
+  panel.addWidget(blue);
+  panel.addWidget(green);
 
-  tb.tabCloseRequested.connect((sender, args) => {
-    sender.removeTab(args.index);
-  });
+  Widget.attach(panel, document.body);
 
-  Widget.attach(tb, document.body);
+  window.onresize = () => { panel.update(); };
 }
 
 

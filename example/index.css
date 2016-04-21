@@ -16,6 +16,7 @@ body {
   top: 10px;
   left: 10px;
   right: 10px;
+  bottom: 10px;
 }
 
 
@@ -103,4 +104,37 @@ body {
 .p-TabBar-tab.p-mod-closable > .p-TabBar-tabCloseIcon:before {
   content: '\f00d';
   font-family: FontAwesome;
+}
+
+
+.p-TabPanel-stackedPanel {
+  padding: 10px;
+  background: white;
+  border: 1px solid #C0C0C0;
+  border-top: none;
+}
+
+
+.content {
+  border: 1px solid black;
+}
+
+
+.red {
+  background: #E74C3C;
+}
+
+
+.yellow {
+  background: #F1C40F;
+}
+
+
+.green {
+  background: #27AE60;
+}
+
+
+.blue {
+  background: #3498DB;
 }
