@@ -222,7 +222,7 @@ class PanelLayout extends Layout {
   /**
    * Remove a widget from the layout.
    *
-   * @param widget - The widget to remove from the layout.
+   * @param index - The index of the widget to remove.
    *
    * #### Notes
    * A widget is automatically removed from the layout when its `parent`
@@ -232,16 +232,17 @@ class PanelLayout extends Layout {
    *
    * This method does *not* modify the widget's `parent`.
    *
-   * If the widget is not contained in the layout, this is a no-op.
+   * If the index is out of range, this is a no-op.
    */
-  removeWidget(widget: Widget): void {
-    // Find the index of the specified widget.
-    let i = indexOf(this._widgets, widget);
-
-    // Bail if the widget is not in the vector.
-    if (i === -1) {
+  removeWidget(index: number): void {
+    // Bail if the index is out of range.
+    let i = Math.floor(index);
+    if (i < 0 || i >= this._widgets.length) {
       return;
     }
+
+    // Look up the widget before removing it.
+    let widget = this._widgets.at(i);
 
     // Remove the widget from the vector.
     this._widgets.remove(i);
@@ -376,7 +377,7 @@ class PanelLayout extends Layout {
    * Subclasses should **not** typically reimplement this method.
    */
   protected onChildRemoved(msg: ChildMessage): void {
-    this.removeWidget(msg.child);
+    this.removeWidget(indexOf(this._widgets, msg.child));
   }
 
   private _widgets = new Vector<Widget>();
