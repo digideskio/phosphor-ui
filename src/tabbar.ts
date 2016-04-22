@@ -224,6 +224,53 @@ interface ITabDetachArgs {
 
 
 /**
+ * An object which renders tab nodes for a tab bar.
+ *
+ * #### Notes
+ * User code can implement a custom tab renderer when the default
+ * tab nodes created by the tab bar are insufficient.
+ */
+export
+interface ITabRenderer {
+  /**
+   * Create a node for a tab.
+   *
+   * @returns A new node for a tab.
+   *
+   * #### Notes
+   * The data in the node should be uninitialized. The `updateTabNode`
+   * method will be called to initialize the data for the tab node.
+   */
+  createTabNode(): HTMLElement;
+
+  /**
+   * Update a tab node to reflect the state of a title.
+   *
+   * @param node - A tab node created by a call to `createTabNode`.
+   *
+   * @param title - The title object holding the data for the tab.
+   *
+   * #### Notes
+   * This method should completely reset the state of the node to
+   * reflect the data in the title.
+   */
+  updateTabNode(node: HTMLElement, title: Title): void;
+
+  /**
+   * Look up the close icon descendant node for a tab node.
+   *
+   * @param node - A tab node created by a call to `createTabNode`.
+   *
+   * @returns The close icon descendant node, or `null` if none exists.
+   *
+   * #### Notes
+   * This is used by the tab bar to detect clicks on the close icon.
+   */
+  closeIconNode(node: HTMLElement): HTMLElement;
+}
+
+
+/**
  * A widget which displays titles as a row of tabs.
  */
 export
@@ -251,11 +298,11 @@ class TabBar extends Widget {
   /**
    * Construct a new tab bar.
    *
-   * @param factory - The factory for creating new tab nodes.
+   * @param renderer - The tab renderer for creating new tab nodes.
    */
-  constructor(factory: ITabFactory = TabFactory.instance) {
+  constructor(renderer: ITabRenderer = TabRenderer.instance) {
     super();
-    this._factory = factory;
+    this._renderer = renderer;
     this.addClass(TAB_BAR_CLASS);
     this.setFlag(WidgetFlag.DisallowLayout);
   }
@@ -268,7 +315,7 @@ class TabBar extends Widget {
     this._tabs.clear();
     this._titles.clear();
     this._dirtyTitles.clear();
-    this._factory = null;
+    this._renderer = null;
     super.dispose();
   }
 
@@ -535,8 +582,8 @@ class TabBar extends Widget {
     // If the title is not in the vector, insert it.
     if (i === -1) {
       // Create the new tab node for the title.
-      let tab = this._factory.createTab();
-      this._factory.updateTab(tab, title);
+      let tab = this._renderer.createTabNode();
+      this._renderer.updateTabNode(tab, title);
 
       // Insert the tab and title into the vectors.
       this._tabs.insert(j, tab);
@@ -722,14 +769,14 @@ class TabBar extends Widget {
   protected onUpdateRequest(msg: Message): void {
     let tabs = this._tabs;
     let titles = this._titles;
-    let factory = this._factory;
+    let renderer = this._renderer;
     let dirtyTitles = this._dirtyTitles;
     let currentTitle = this.currentTitle;
     for (let i = 0, n = tabs.length; i < n; ++i) {
       let tab = tabs.at(i);
       let title = titles.at(i);
       if (dirtyTitles.has(title)) {
-        factory.updateTab(tab, title);
+        renderer.updateTabNode(tab, title);
       }
       if (title === currentTitle) {
         tab.classList.add(CURRENT_CLASS);
@@ -787,7 +834,7 @@ class TabBar extends Widget {
     }
 
     // Ignore the click if it was not on a close icon.
-    let icon = this._factory.closeIcon(this._tabs.at(i));
+    let icon = this._renderer.closeIconNode(this._tabs.at(i));
     if (!icon || !icon.contains(event.target as HTMLElement)) {
       return;
     }
@@ -823,7 +870,7 @@ class TabBar extends Widget {
     event.stopPropagation();
 
     // Ignore the press if it was on a close icon.
-    let icon = this._factory.closeIcon(this._tabs.at(i));
+    let icon = this._renderer.closeIconNode(this._tabs.at(i));
     if (icon && icon.contains(event.target as HTMLElement)) {
       return;
     }
@@ -1051,7 +1098,7 @@ class TabBar extends Widget {
 
   private _currentIndex = -1;
   private _tabsMovable = false;
-  private _factory: ITabFactory;
+  private _renderer: ITabRenderer;
   private _titles = new Vector<Title>();
   private _dirtyTitles= new Set<Title>();
   private _tabs = new Vector<HTMLElement>();
@@ -1067,66 +1114,19 @@ defineSignal(TabBar.prototype, 'tabDetachRequested');
 
 
 /**
- * A factory object which creates tabs for a tab bar.
+ * A concrete implementation of [[ITabRenderer]].
  *
  * #### Notes
- * User code can implement a tab factory when the default tabs created
- * by the tab bar are insufficient, or when custom tabs are desired.
+ * This is the default tab renderer type for a `TabBar`.
  */
 export
-interface ITabFactory {
-  /**
-   * Create a node for a tab.
-   *
-   * @returns A new node for a tab.
-   *
-   * #### Notes
-   * The data in the node should be uninitialized. The `updateTab`
-   * method will be called to initialize the data for the tab node.
-   */
-  createTab(): HTMLElement;
-
-  /**
-   * Update a tab node to reflect the state of a title.
-   *
-   * @param node - A tab node created by a call to `createTab`.
-   *
-   * @param title - The title object holding the data for the tab.
-   *
-   * #### Notes
-   * This method should completely reset the state of the tab node to
-   * reflect the data in the title.
-   */
-  updateTab(node: HTMLElement, title: Title): void;
-
-  /**
-   * Look up the close icon descendant node for a tab node.
-   *
-   * @param node - A tab node created by a call to `createTab`.
-   *
-   * @returns The close icon descendant node, or `null` if none exists.
-   *
-   * #### Notes
-   * This is used by the tab bar to detect clicks on the close icon.
-   */
-  closeIcon(node: HTMLElement): HTMLElement;
-}
-
-
-/**
- * A concrete implementation of [[ITabFactory]].
- *
- * #### Notes
- * This is the default tab factory type for `TabBar`.
- */
-export
-class TabFactory implements ITabFactory {
+class TabRenderer implements ITabRenderer {
   /**
    * Create a node for a tab.
    *
    * @returns A new node for a tab.
    */
-  createTab(): HTMLElement {
+  createTabNode(): HTMLElement {
     let node = document.createElement('li');
     let icon = document.createElement('span');
     let text = document.createElement('span');
@@ -1144,11 +1144,11 @@ class TabFactory implements ITabFactory {
   /**
    * Update a tab node to reflect the state of a title.
    *
-   * @param node - A tab node created by a call to `createTab`.
+   * @param node - A tab node created by a call to `createTabNode`.
    *
    * @param title - The title object holding the data for the tab.
    */
-  updateTab(node: HTMLElement, title: Title): void {
+  updateTabNode(node: HTMLElement, title: Title): void {
     let tabInfix = title.className ? ` ${title.className}` : '';
     let tabSuffix = title.closable ? ` ${CLOSABLE_CLASS}` : '';
     let iconSuffix = title.icon ? ` ${title.icon}` : '';
@@ -1163,29 +1163,29 @@ class TabFactory implements ITabFactory {
   /**
    * Look up the close icon descendant node for a tab node.
    *
-   * @param node - A tab node created by a call to `createTab`.
+   * @param node - A tab node created by a call to `createTabNode`.
    *
    * @returns The close icon descendant node, or `null` if none exists.
    */
-  closeIcon(node: HTMLElement): HTMLElement {
+  closeIconNode(node: HTMLElement): HTMLElement {
     return node.lastChild as HTMLElement;
   }
 }
 
 
 /**
- * The namespace for the `TabFactory` class statics.
+ * The namespace for the `TabRenderer` class statics.
  */
 export
-namespace TabFactory {
+namespace TabRenderer {
   /**
-   * A singleton instance of the `TabFactory` class.
+   * A singleton instance of the `TabRenderer` class.
    *
    * #### Notes
    * This is default tab factory instance used by `TabBar`.
    */
   export
-  const instance = new TabFactory();
+  const instance = new TabRenderer();
 }
 
 

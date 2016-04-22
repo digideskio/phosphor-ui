@@ -126,15 +126,15 @@ class SplitPanel extends Panel {
   }
 
   /**
-   * Create a split handle for use in a split panel.
+   * Create a handle node for use in a split panel.
    *
    * #### Notes
-   * This may be reimplemented to create custom split handles.
+   * This may be reimplemented to create custom handles.
    */
-  static createHandle(): HTMLElement {
-    let handle = document.createElement('div');
-    handle.className = HANDLE_CLASS;
-    return handle;
+  static createHandleNode(): HTMLElement {
+    let node = document.createElement('div');
+    node.className = HANDLE_CLASS;
+    return node;
   }
 
   /**
@@ -454,16 +454,16 @@ namespace SplitPanel {
 
 
 /**
- * A factory object which creates handles for a split layout.
+ * A renderer which creates handles for a split layout.
  */
 export
-interface IHandleFactory {
+interface IHandleRenderer {
   /**
-   * Create a new split handle for use with a split layout.
+   * Create a new handle node for use with a split layout.
    *
-   * @returns A new split handle node.
+   * @returns A new handle node.
    */
-  createHandle(): HTMLElement;
+  createHandleNode(): HTMLElement;
 }
 
 
@@ -475,11 +475,11 @@ class SplitLayout extends PanelLayout {
   /**
    * Construct a new split layout.
    *
-   * @param factory - The handle factory for creating split handles.
+   * @param renderer - The handle renderer for creating split handles.
    */
-  constructor(factory: IHandleFactory) {
+  constructor(renderer: IHandleRenderer) {
     super();
-    this._factory = factory;
+    this._renderer = renderer;
   }
 
   /**
@@ -639,7 +639,7 @@ class SplitLayout extends PanelLayout {
    */
   protected attachWidget(index: number, widget: Widget): void {
     // Create and add the handle and sizer for the new widget.
-    let handle = Private.createHandle(this._factory);
+    let handle = Private.createHandle(this._renderer);
     let average = Private.averageSize(this._sizers);
     let sizer = Private.createSizer(average);
     this._sizers.insert(index, sizer);
@@ -962,7 +962,7 @@ class SplitLayout extends PanelLayout {
   private _spacing = 3;
   private _dirty = false;
   private _box: IBoxSizing = null;
-  private _factory: IHandleFactory;
+  private _renderer: IHandleRenderer;
   private _sizers = new Vector<BoxSizer>();
   private _handles = new Vector<HTMLElement>();
   private _orientation = Orientation.Horizontal;
@@ -1065,13 +1065,13 @@ namespace Private {
   }
 
   /**
-   * Create a new split handle using the given factory.
+   * Create a new split handle node using the given renderer.
    */
   export
-  function createHandle(factory: IHandleFactory): HTMLElement {
-    let handle = factory.createHandle();
-    handle.style.position = 'absolute';
-    return handle;
+  function createHandle(renderer: IHandleRenderer): HTMLElement {
+    let node = renderer.createHandleNode();
+    node.style.position = 'absolute';
+    return node;
   }
 
   /**
