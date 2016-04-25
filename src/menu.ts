@@ -80,6 +80,11 @@ const NORMAL_TYPE_CLASS = 'p-type-normal';
 const CHECK_TYPE_CLASS = 'p-type-check';
 
 /**
+ * The class name added to a `'radio'` type menu item.
+ */
+const RADIO_TYPE_CLASS = 'p-type-radio';
+
+/**
  * The class name added to a `'separator'` type menu item.
  */
 const SEPARATOR_TYPE_CLASS = 'p-type-separator';
@@ -129,7 +134,7 @@ const SUBMENU_OVERLAP = 3;
  * A type alias for the supported menu item types.
  */
 export
-type MenuItemType = 'normal' | 'check' | 'separator' | 'submenu';
+type MenuItemType = 'normal' | 'check' | 'radio' | 'submenu' | 'separator';
 
 
 /**
@@ -139,107 +144,75 @@ export
 interface IMenuItemOptions {
   /**
    * The type of the menu item.
-   *
-   * #### Notes
-   * The default type is `'normal'`.
    */
   type?: MenuItemType;
 
   /**
    * The text for the menu item.
-   *
-   * #### Notes
-   * An `'&&'` before a character denotes the item mnemonic.
-   *
-   * The default is an empty string.
    */
   text?: string;
 
   /**
    * The icon class for the menu item.
-   *
-   * #### Notes
-   * Multiple class names can be separated by whitespace.
-   *
-   * The default is an empty string.
    */
   icon?: string;
 
   /**
-   * The keyboard shortcut for the menu item.
-   *
-   * #### Notes
-   * The shortcut is for decoration only.
-   *
-   * The default is an empty string.
+   * The keyboard shortcut decoration for the menu item.
    */
   shortcut?: string;
 
   /**
    * The checked state for the menu item.
-   *
-   * #### Notes
-   * The default is `false`.
    */
   checked?: boolean;
 
   /**
    * The disabled state for the menu item.
-   *
-   * #### Notes
-   * The default is `false`.
    */
   disabled?: boolean;
 
   /**
-   * The extra class name to associate with the menu item.
-   *
-   * #### Notes
-   * Multiple class names can be separated by whitespace.
-   *
-   * The default is an empty string.
+   * The hidden state for the menu item.
+   */
+  hidden?: boolean;
+
+  /**
+   * The extra class name for the menu item.
    */
   className?: string;
 
   /**
-   * The handler function for the menu item.
-   *
-   * #### Notes
-   * The default is `null`.
+   * The command id for the menu item.
    */
-  handler?: (args: any) => void;
+  command?: string;
 
   /**
-   * The arguments for the item handler.
-   *
-   * #### Notes
-   * The default is `null`.
+   * The command args for the menu item.
    */
   args?: any;
 
   /**
    * The submenu for the menu item.
-   *
-   * #### Notes
-   * The default is `null`.
    */
   submenu?: Menu;
 }
 
 
 /**
- * An object which can be added to a menu widget.
+ * An object which holds the data for an item in a menu.
  *
  * #### Notes
- * A menu item is treated as a simple data struct. Changes to a menu
- * item will be reflected in a menu the next time the menu is opened.
+ * A menu item is a simple data struct. If the data in a menu item is
+ * changed, the changes will be reflected in a menu the next time the
+ * menu is opened.
  */
 export
 class MenuItem {
   /**
    * Construct a new menu item.
    *
-   * @param options - The initialization options for the menu item.
+   * @param options - The options for initializing the menu item.
    */
   constructor(options?: IMenuItemOptions) {
     if (options === void 0) {
@@ -263,11 +236,14 @@ class MenuItem {
     if (options.disabled !== void 0) {
       this.disabled = options.disabled;
     }
+    if (options.hidden !== void 0) {
+      this.hidden = options.hidden;
+    }
     if (options.className !== void 0) {
       this.className = options.className;
     }
-    if (options.handler !== void 0) {
-      this.handler = options.handler;
+    if (options.command !== void 0) {
+      this.command = options.command;
     }
     if (options.args !== void 0) {
       this.args = options.args;
@@ -281,8 +257,7 @@ class MenuItem {
    * The type of the menu item.
    *
    * #### Notes
-   * This value controls how the rest of the menu item properties are
-   * interpreted by the menu widget and the menu item renderer.
+   * This controls how the rest of the item properties are interpreted.
    *
    * The default value is `'normal'`.
    */
@@ -292,9 +267,9 @@ class MenuItem {
    * The text for the menu item.
    *
    * #### Notes
-   * An `'&&'` before a character denotes the item mnemonic.
+   * A `'&&'` sequence before a character denotes the item mnemonic.
    *
-   * The default renderer ignores this value for `'separator'` items.
+   * This value is ignored for `'separator'` type items.
    *
    * The default value is an empty string.
    */
@@ -308,9 +283,9 @@ class MenuItem {
    *
    * Multiple class names can be separated by whitespace.
    *
-   * The default renderer ignores this value for `'separator'` items.
+   * This value is ignored for `'separator'` type items.
    *
-   * The default is an empty string.
+   * The default value is an empty string.
    */
   icon = '';
 
@@ -318,12 +293,12 @@ class MenuItem {
    * The keyboard shortcut decoration for the menu item.
    *
    * #### Notes
-   * This value is for decoration only.
+   * This value is for decoration purposes only. Management of keyboard
+   * shortcut bindings is left to other library code.
    *
-   * The default renderer ignores this value for `'separator'` and
-   * `'submenu'` items.
+   * This value is ignored for `'separator'` and `'submenu'` type items.
    *
-   * The default is an empty string.
+   * The default value is an empty string.
    */
   shortcut = '';
 
@@ -331,7 +306,9 @@ class MenuItem {
    * The checked state for the menu item.
    *
    * #### Notes
-   * The default is `false`.
+   * This value is only used for `'check'` and `'radio'` type items.
+   *
+   * The default value is `false`.
    */
   checked = false;
 
@@ -339,9 +316,19 @@ class MenuItem {
    * The disabled state for the menu item.
    *
    * #### Notes
+   * This value is ignored for `'separator'` type items.
+   *
    * The default value is `false`.
    */
   disabled = false;
+
+  /**
+   * The hidden state for the menu item.
+   *
+   * #### Notes
+   * The default value is `false`.
+   */
+  hidden = false;
 
   /**
    * The extra class name to associate with the menu item.
@@ -349,23 +336,25 @@ class MenuItem {
    * #### Notes
    * Multiple class names can be separated by whitespace.
    *
-   * The default is an empty string.
+   * The default value is an empty string.
    */
   className = '';
 
   /**
-   * The handler function for the menu item.
+   * The command id to associate with the menu item.
    *
    * #### Notes
-   * The default is `null`.
+   * The default value is an empty string.
    */
-  handler: (args: any) => void = null;
+  command = '';
 
   /**
-   * The arguments for the item handler.
+   * The command args to associate with the menu item.
    *
    * #### Notes
-   * The default is `null`.
+   * This should be a simple JSON-compatible value.
+   *
+   * The default value is `null`.
    */
   args: any = null;
 
@@ -373,36 +362,61 @@ class MenuItem {
    * The submenu for the menu item.
    *
    * #### Notes
-   * The default is `null`.
+   * This value is only used for `'submenu'` type items.
+   *
+   * The default value is `null`.
    */
   submenu: Menu = null;
 }
 
 
 /**
+ * An object which renders item nodes for a menu.
  *
+ * #### Notes
+ * User code can implement a custom item renderer when the default
+ * item nodes created by the menu are insufficient.
  */
 export
 interface IMenuItemRenderer {
   /**
+   * Create a node for a menu item.
    *
+   * @returns A new node for a menu item.
+   *
+   * #### Notes
+   * The data in the node should be uninitialized. The `updateItemNode`
+   * method will be called to initialize the data for the item node.
    */
   createItemNode(): HTMLElement;
 
   /**
+   * Update an item node to reflect the state of a menu item.
    *
+   * @param node - An item node created by a call to `createItemNode`.
+   *
+   * @param item - The menu item holding the data for the node.
+   *
+   * #### Notes
+   * This method should completely reset the state of the node to
+   * reflect the data in the menu item.
    */
   updateItemNode(node: HTMLElement, item: MenuItem): void;
 }
 
 
 /**
+ * A concrete implementation of [[IMenuItemRenderer]].
  *
+ * #### Notes
+ * This is the default item renderer type for a [[Menu]].
  */
 export
 class MenuItemRenderer implements IMenuItemRenderer {
   /**
+   * Create a node for a menu item.
    *
+   * @returns A new node for a menu item.
    */
   createItemNode(): HTMLElement {
     let node = document.createElement('li');
@@ -422,7 +436,11 @@ class MenuItemRenderer implements IMenuItemRenderer {
   }
 
   /**
+   * Update an item node to reflect the state of a menu item.
    *
+   * @param node - An item node created by a call to `createItemNode`.
+   *
+   * @param item - The menu item holding the data for the node.
    */
   updateItemNode(node: HTMLElement, item: MenuItem): void {
     let sub = item.type === 'submenu';
@@ -437,14 +455,20 @@ class MenuItemRenderer implements IMenuItemRenderer {
   }
 
   /**
+   * Create the full class name for a menu item.
    *
+   * @param item - The menu item of interest.
+   *
+   * #### Notes
+   * This method will render the full class name for the item, taking
+   * into account its type and other relevant state based on the type.
    */
   createItemClassName(item: MenuItem): string {
     let name = ITEM_CLASS;
     switch (item.type) {
     case 'normal':
       name += ` ${NORMAL_TYPE_CLASS}`;
-      if (item.disabled || !item.handler) {
+      if (item.disabled) {
         name += ` ${DISABLED_CLASS}`;
       }
       break;
@@ -453,19 +477,31 @@ class MenuItemRenderer implements IMenuItemRenderer {
       if (item.checked) {
         name += ` ${CHECKED_CLASS}`;
       }
-      if (item.disabled || !item.handler) {
+      if (item.disabled) {
+        name += ` ${DISABLED_CLASS}`;
+      }
+      break;
+    case 'radio':
+      name += ` ${RADIO_TYPE_CLASS}`;
+      if (item.checked) {
+        name += ` ${CHECKED_CLASS}`;
+      }
+      if (item.disabled) {
         name += ` ${DISABLED_CLASS}`;
       }
       break;
     case 'submenu':
       name += ` ${SUBMENU_TYPE_CLASS}`;
-      if (item.disabled || !item.submenu) {
+      if (item.disabled) {
         name += ` ${DISABLED_CLASS}`;
       }
       break;
     case 'separator':
       name += ` ${SEPARATOR_TYPE_CLASS}`;
       break;
+    }
+    if (item.hidden) {
+      name += ` ${HIDDEN_CLASS}`;
     }
     if (item.className) {
       name += ` ${item.className}`;
@@ -476,12 +512,15 @@ class MenuItemRenderer implements IMenuItemRenderer {
 
 
 /**
- *
+ * The namespace for the `MenuItemRenderer` class statics.
  */
 export
 namespace MenuItemRenderer {
   /**
+   * A singleton instance of the `MenuItemRenderer` class.
    *
+   * #### Notes
+   * This is default item renderer instance used by `TabBar`.
    */
   export
   const instance = new MenuItemRenderer();
@@ -639,7 +678,10 @@ class Menu extends Widget {
       i = -1;
     }
 
-    // TODO ensure item can be activated
+    // Ensure the item is selectable.
+    if (i !== -1 && !Private.isSelectable(this._items.at(i))) {
+      i = -1;
+    }
 
     // Bail early if the index will not change.
     if (this._activeIndex === i) {
@@ -818,6 +860,7 @@ class Menu extends Widget {
    */
   protected onAfterAttach(msg: Message): void {
     this.node.addEventListener('mouseup', this);
+    //this.node.addEventListener('mousedown', this);
     this.node.addEventListener('mousemove', this);
     this.node.addEventListener('mouseleave', this);
     this.node.addEventListener('contextmenu', this);
@@ -831,6 +874,7 @@ class Menu extends Widget {
    */
   protected onBeforeDetach(msg: Message): void {
     this.node.removeEventListener('mouseup', this);
+    //this.node.removeEventListener('mousedown', this);
     this.node.removeEventListener('mousemove', this);
     this.node.removeEventListener('mouseleave', this);
     this.node.removeEventListener('contextmenu', this);
@@ -863,6 +907,46 @@ class Menu extends Widget {
   }
 
   /**
+   * A message handler invoked on a `'close-request'` message.
+   */
+  protected onCloseRequest(msg: Message): void {
+    // Cancel any pending open or close.
+    this._cancelPendingOpen();
+    this._cancelPendingClose();
+
+    // Reset the active index.
+    this.activeIndex = -1;
+
+    // Close any open child menu.
+    let childMenu = this._childMenu;
+    if (childMenu) {
+      this._childMenu = null;
+      this._childItem = null;
+      childMenu._parentMenu = null;
+      childMenu.close();
+    }
+
+    // Remove this menu from any parent.
+    let parentMenu = this._parentMenu;
+    if (parentMenu) {
+      this._parentMenu = null;
+      parentMenu._cancelPendingOpen();
+      parentMenu._cancelPendingClose();
+      parentMenu._childMenu = null;
+      parentMenu._childItem = null;
+    }
+
+    // Ensure this menu is detached.
+    if (this.parent) {
+      this.parent = null;
+      //this.closed.emit(void 0);
+    } else if (this.isAttached) {
+      Widget.detach(this);
+      //this.closed.emit(void 0);
+    }
+  }
+
+  /**
    * Handle the `'mouseup'` event for the menu.
    *
    * #### Notes
@@ -877,6 +961,28 @@ class Menu extends Widget {
     // Prevent further propagation of the event.
     event.preventDefault();
     event.stopPropagation();
+
+    // Hit test the item nodes for the item under the mouse.
+    let x = event.clientX;
+    let y = event.clientY;
+    let i = findIndex(this._nodes, node => hitTest(node, x, y));
+
+    // Bail early if the mouse is already over the active index.
+    if (i !== this._activeIndex) {
+      return;
+    }
+
+    let item = this.activeItem;
+    if (!item || !item.submenu) {
+      return;
+    }
+
+    if (item === this._childItem) {
+      this._cancelPendingClose();
+    } else {
+      this._closeChildMenu();
+      this._openChildMenu(item, this._nodes.at(i));
+    }
 
     // // Bail if there is no active item.
     // let item = this.activeItem;
@@ -920,7 +1026,7 @@ class Menu extends Widget {
     this._syncAncestors();
 
     // Start the close timer for an open child menu.
-    this._closeChildMenu();
+    // this._closeChildMenu();
 
     // Cancel any pending open menu timer.
     this._cancelPendingOpen();
@@ -932,11 +1038,11 @@ class Menu extends Widget {
     }
 
     // If the item has a submenu, open it or keep it open.
-    if (item === this._childItem) {
-      this._cancelPendingClose();
-    } else {
-      this._openChildMenuDelayed(item, this._nodes.at(i));
-    }
+    // if (item === this._childItem) {
+    //   this._cancelPendingClose();
+    // } else {
+    //   this._openChildMenuDelayed(item, this._nodes.at(i));
+    // }
   }
 
   /**
@@ -1046,8 +1152,7 @@ class Menu extends Widget {
 
     // If a child menu was hit, stop the propagation.
     if (hit) {
-      event.stopPropagation();
-      event.preventDefault();
+      // TODO stop propagation here?
       return;
     }
 
@@ -1207,6 +1312,23 @@ class Menu extends Widget {
  * The namespace for the private module data.
  */
 namespace Private {
+  /**
+   *
+   */
+  export
+  function isSelectable(item: MenuItem): boolean {
+    if (item.type === 'separator') {
+      return false;
+    }
+    if (item.disabled) {
+      return false;
+    }
+    if (item.type === 'submenu') {
+      return !!item.submenu;
+    }
+    return !!item.handler;
+  }
+
   /**
    * Hide leading, trailing, and consecutive separator nodes.
    */
