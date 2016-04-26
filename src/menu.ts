@@ -1451,7 +1451,11 @@ namespace Private {
     let k1 = 0;
     let n = items.length;
     for (; k1 < n; ++k1) {
-      if (items.at(k1).type !== 'separator') {
+      let item = items.at(k1);
+      if (item.hidden) {
+        continue;
+      }
+      if (item.type !== 'separator') {
         break;
       }
       nodes.at(k1).classList.add(HIDDEN_CLASS);
@@ -1460,7 +1464,11 @@ namespace Private {
     // Hide the trailing separators.
     let k2 = n - 1;
     for (; k2 >= 0; --k2) {
-      if (items.at(k2).type !== 'separator') {
+      let item = items.at(k2);
+      if (item.hidden) {
+        continue;
+      }
+      if (item.type !== 'separator') {
         break;
       }
       nodes.at(k2).classList.add(HIDDEN_CLASS);
@@ -1469,7 +1477,11 @@ namespace Private {
     // Hide the remaining consecutive separators.
     let hide = false;
     while (++k1 < k2) {
-      if (items.at(k1).type !== 'separator') {
+      let item = items.at(k1);
+      if (item.hidden) {
+        continue;
+      }
+      if (item.type !== 'separator') {
         hide = false;
       } else if (hide) {
         nodes.at(k1).classList.add(HIDDEN_CLASS);
