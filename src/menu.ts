@@ -599,9 +599,8 @@ class Menu extends Widget {
    * Dispose of the resources held by the menu.
    */
   dispose(): void {
-    // TODO ... ?
-    // this.close();
-    // this.clearItems();
+    this.clearItems();
+    this._renderer = null;
     super.dispose();
   }
 
