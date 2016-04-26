@@ -1435,7 +1435,7 @@ defineSignal(Menu.prototype, 'triggered');
  */
 namespace Private {
   /**
-   *
+   * Test whether a menu item is selectable.
    */
   export
   function isSelectable(item: MenuItem): boolean {
