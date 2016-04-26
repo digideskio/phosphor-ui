@@ -864,9 +864,9 @@ class Menu extends Widget {
       event.stopPropagation();
       break;
     // Events attached to the document node:
-    // case 'keydown':
-    //   this._evtKeyDown(event as KeyboardEvent);
-    //   break;
+    case 'keydown':
+      this._evtKeyDown(event as KeyboardEvent);
+      break;
     // case 'keypress':
     //   this._evtKeyPress(event as KeyboardEvent);
     //   break;
@@ -1000,16 +1000,16 @@ class Menu extends Widget {
       return;
     }
 
-    // If the item is a submenu, open it immediately.
-    if (item.type === 'submenu') {
-      this._cancelOpenTimer();
-      this._cancelCloseTimer();
-      this._openChildMenu();
-      return;
-    }
+    // Cancel the pending timers.
+    this._cancelOpenTimer();
+    this._cancelCloseTimer();
 
-    // Otherwise, trigger the item and close the menu hierarchy.
-    this._triggerItem(item);
+    // Open or trigger the item immediately.
+    if (item.type === 'submenu') {
+      this._openChildMenu();
+    } else {
+      this._triggerItem(item);
+    }
   }
 
   /**
@@ -1090,6 +1090,144 @@ class Menu extends Widget {
     // Otherwise, reset the active index and start the close timer.
     this.activeIndex = -1;
     this._startCloseTimer();
+  }
+
+  /**
+   * Handle the `'keydown'` event for the menu.
+   *
+   * #### Notes
+   * This listener is attached to the document node.
+   */
+  private _evtKeyDown(event: KeyboardEvent): void {
+    // Only process the event if the menu is a leaf menu.
+    if (this._childMenu) {
+      return;
+    }
+
+    // Extract the key code from the event.
+    let kc = event.keyCode;
+
+    // `Enter`
+    // Trigger or open the active item.
+    if (kc === 13) {
+      // Kill the event entirely.
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Bail if there is no active item.
+      let item = this.activeItem;
+      if (!item) {
+        return;
+      }
+
+      // Cancel the pending timers.
+      this._cancelOpenTimer();
+      this._cancelCloseTimer();
+
+      // Trigger a non-submenu item.
+      if (item.type !== 'submenu') {
+        this._triggerItem(item);
+        return;
+      }
+
+      // Otherwise open the submenu item.
+      this._openChildMenu();
+
+      // Activate the first item in the child menu if possible.
+      if (this._childMenu) {
+        Private.activateFirstSelectable(this._childMenu);
+      }
+
+      // Done.
+      return;
+    }
+
+    // `Escape`
+    // Close this menu.
+    if (kc === 27) {
+      // Kill the event entirely.
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Close this menu only.
+      this.close();
+
+      // Done.
+      return;
+    }
+
+    // `Left Arrow`
+    // Close this menu if it's a submenu.
+    if (kc === 37) {
+      // Kill the event entirely.
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Close this menu if it's a leaf.
+      if (this._parentMenu) {
+        this.close();
+      }
+
+      // Done.
+      return;
+    }
+
+    // `Up Arrow`
+    // Activate the previous item.
+    if (kc === 38) {
+      // Kill the event entirely.
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Activate the previous selectable item.
+      Private.activatePrevSelectable(this);
+
+      // Done.
+      return;
+    }
+
+    // `Right Arrow`
+    // Open the active item if it's a submenu.
+    if (kc === 39) {
+      // Kill the event entirely.
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Bail if the item is not a submenu.
+      let item = this.activeItem;
+      if (!item || item.type !== 'submenu') {
+        return;
+      }
+
+      // Cancel the pending timers.
+      this._cancelOpenTimer();
+      this._cancelCloseTimer();
+
+      // Open the submenu item.
+      this._openChildMenu();
+
+      // Activate the first item in the child menu if possible.
+      if (this._childMenu) {
+        Private.activateFirstSelectable(this._childMenu);
+      }
+
+      // Done.
+      return;
+    }
+
+    // `Down Arrow`
+    // Activate the next item.
+    if (kc === 40) {
+      // Kill the event entirely.
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Activate the next selectable item.
+      Private.activateNextSelectable(this);
+
+      // Done.
+      return;
+    }
   }
 
   /**
@@ -1301,6 +1439,62 @@ namespace Private {
         hide = true;
       }
     }
+  }
+
+  /**
+   * Activate the first selectable menu item in a menu.
+   *
+   * If no item is selectable, the index will be set to `-1`.
+   */
+  export
+  function activateFirstSelectable(menu: Menu): void {
+    let items = menu.items;
+    for (let i = 0, n = items.length; i < n; ++i) {
+      if (isSelectable(items.at(i))) {
+        menu.activeIndex = i;
+        return;
+      }
+    }
+    menu.activeIndex = -1;
+  }
+
+  /**
+   * Activate the next selectable menu item in a menu.
+   *
+   * If no item is selectable, the index will be set to `-1`.
+   */
+  export
+  function activateNextSelectable(menu: Menu): void {
+    let items = menu.items;
+    let j = menu.activeIndex + 1;
+    for (let i = 0, n = items.length; i < n; ++i) {
+      let k = (i + j) % n;
+      if (isSelectable(items.at(k))) {
+        menu.activeIndex = k;
+        return;
+      }
+    }
+    menu.activeIndex = -1;
+  }
+
+  /**
+   * Activate the previous selectable menu item in a menu.
+   *
+   * If no item is selectable, the index will be set to `-1`.
+   */
+  export
+  function activatePrevSelectable(menu: Menu): void {
+    let items = menu.items;
+    let ai = menu.activeIndex;
+    let j = ai <= 0 ? items.length - 1 : ai - 1;
+    for (let i = 0, n = items.length; i < n; ++i) {
+      let k = (j - i + n) % n;
+      if (isSelectable(items.at(k))) {
+        menu.activeIndex = k;
+        return;
+      }
+    }
+    menu.activeIndex = -1;
   }
 
   /**
