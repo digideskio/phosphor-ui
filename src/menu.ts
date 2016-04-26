@@ -444,18 +444,18 @@ class MenuItemRenderer implements IMenuItemRenderer {
     let text = icon.nextSibling as HTMLElement;
     let shortcut = text.nextSibling as HTMLElement;
     node.className = this.createItemClassName(item);
-    icon.className = ICON_CLASS + (item.icon ? ` ${item.icon}` : '');
+    icon.className = this.createIconClassName(item);
     text.textContent = sep ? '' : item.text.replace(/&&/g, '');
     shortcut.textContent = (sep || sub) ? '' : item.shortcut;
   }
 
   /**
-   * Create the full class name for a menu item.
+   * Create the full class name for a menu item node.
    *
    * @param item - The menu item of interest.
    *
    * #### Notes
-   * This method will render the full class name for the item, taking
+   * This method will create the full class name for the item, taking
    * into account its type and other relevant state based on the type.
    */
   createItemClassName(item: MenuItem): string {
@@ -500,6 +500,23 @@ class MenuItemRenderer implements IMenuItemRenderer {
     }
     if (item.className) {
       name += ` ${item.className}`;
+    }
+    return name;
+  }
+
+  /**
+   * Create the full class name for a menu item icon node.
+   *
+   * @param item - The menu item of interest.
+   *
+   * #### Notes
+   * This method will create the class name for the item icon, taking
+   * into account its type and other relevant state based on the type.
+   */
+  createIconClassName(item: MenuItem): string {
+    let name = ICON_CLASS;
+    if (item.type !== 'separator' && item.icon) {
+      name += ` ${item.icon}`;
     }
     return name;
   }
