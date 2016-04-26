@@ -115,17 +115,12 @@ const CHECKED_CLASS = 'p-mod-checked';
 const HIDDEN_CLASS = 'p-mod-hidden';
 
 /**
- * The ms delay for opening a submenu.
+ * The ms delay for opening and closing a submenu.
  */
-const OPEN_DELAY = 300;
+const TIMER_DELAY = 300;
 
 /**
- * The ms delay for closing a submenu.
- */
-const CLOSE_DELAY = 300;
-
-/**
- * The horizontal px overlap for open submenus.
+ * The horizontal pixel overlap for open submenus.
  */
 const SUBMENU_OVERLAP = 3;
 
@@ -556,6 +551,32 @@ class Menu extends Widget {
   }
 
   /**
+   * Dispose of the resources held by the menu.
+   */
+  dispose(): void {
+    // TODO ... ?
+    // this.close();
+    // this.clearItems();
+    super.dispose();
+  }
+
+  /**
+   * A signal emitted when the menu is closed.
+   *
+   * #### Notes
+   * TODO
+   */
+  closed: ISignal<Menu, void>;
+
+  /**
+   * A signal emitted when a menu item in the hierarchy is triggered.
+   *
+   * #### Notes
+   * TODO
+   */
+  triggered: ISignal<Menu, MenuItem>;
+
+  /**
    * Get the parent menu of the menu.
    *
    * #### Notes
@@ -614,10 +635,10 @@ class Menu extends Widget {
   }
 
   /**
-   * Get the currently active item.
+   * Get the currently active menu item.
    *
    * #### Notes
-   * This will be `null` if no item is active.
+   * This will be `null` if no menu item is active.
    */
   get activeItem(): MenuItem {
     let i = this._activeIndex;
@@ -625,20 +646,20 @@ class Menu extends Widget {
   }
 
   /**
-   * Set the currently active item.
+   * Set the currently active menu item.
    *
    * #### Notes
-   * If the item does not exist, the item will be set to `null`.
+   * If the item does not exist, the menu item will be set to `null`.
    */
   set activeItem(value: MenuItem) {
     this.activeIndex = indexOf(this._items, value);
   }
 
   /**
-   * Get the currently active item node.
+   * Get the currently active menu item node.
    *
    * #### Notes
-   * This will be `null` if no item is active.
+   * This will be `null` if no menu item is active.
    */
   get activeItemNode(): HTMLElement {
     let i = this._activeIndex;
@@ -646,7 +667,7 @@ class Menu extends Widget {
   }
 
   /**
-   * Set the currently active item node.
+   * Set the currently active menu item node.
    *
    * #### Notes
    * If the node does not exist, the node will be set to `null`.
@@ -656,20 +677,21 @@ class Menu extends Widget {
   }
 
   /**
-   * Get the index of the currently active item.
+   * Get the index of the currently active menu item.
    *
    * #### Notes
-   * This will be `-1` if no item is active.
+   * This will be `-1` if no menu item is active.
    */
   get activeIndex(): number {
     return this._activeIndex;
   }
 
   /**
-   * Set the index of the currently active item.
+   * Set the index of the currently active menu item.
    *
    * #### Notes
-   * If the value is out of range, the index will be set to `-1`.
+   * If the index is out of range, or points to a disabled, hidden,
+   * or `'separator'` type item, the index will be set to `-1`.
    */
   set activeIndex(value: number) {
     // Coerce the value to an index.
@@ -732,8 +754,7 @@ class Menu extends Widget {
     // Clamp the insert index to the vector bounds.
     let i = Math.max(0, Math.min(Math.floor(index), this._items.length));
 
-    // Create an uninitialized node for the item.
-    // It will be inited on the next menu update.
+    // Create the node for the item. It will be initialized on open.
     let node = this._renderer.createItemNode();
 
     // Insert the item and node into the vectors.
@@ -798,9 +819,9 @@ class Menu extends Widget {
   /**
    * Open the menu at the specified location.
    *
-   * @param x - The client X coordinate of the popup location.
+   * @param x - The client X coordinate of the menu location.
    *
-   * @param y - The client Y coordinate of the popup location.
+   * @param y - The client Y coordinate of the menu location.
    *
    * #### Notes
    * The menu will be opened at the given location unless it will not
@@ -828,7 +849,7 @@ class Menu extends Widget {
    */
   handleEvent(event: Event): void {
     switch (event.type) {
-    // Events attached to menu node:
+    // Events attached to the menu node:
     case 'mouseup':
       this._evtMouseUp(event as MouseEvent);
       break;
@@ -842,16 +863,16 @@ class Menu extends Widget {
       event.preventDefault();
       event.stopPropagation();
       break;
-    // Events attached to document node:
-    case 'keydown':
-      this._evtKeyDown(event as KeyboardEvent);
-      break;
-    case 'keypress':
-      this._evtKeyPress(event as KeyboardEvent);
-      break;
-    case 'mousedown':
-      this._evtMouseDown(event as MouseEvent);
-      break;
+    // Events attached to the document node:
+    // case 'keydown':
+    //   this._evtKeyDown(event as KeyboardEvent);
+    //   break;
+    // case 'keypress':
+    //   this._evtKeyPress(event as KeyboardEvent);
+    //   break;
+    // case 'mousedown':
+    //   this._evtMouseDown(event as MouseEvent);
+    //   break;
     }
   }
 
@@ -860,7 +881,6 @@ class Menu extends Widget {
    */
   protected onAfterAttach(msg: Message): void {
     this.node.addEventListener('mouseup', this);
-    //this.node.addEventListener('mousedown', this);
     this.node.addEventListener('mousemove', this);
     this.node.addEventListener('mouseleave', this);
     this.node.addEventListener('contextmenu', this);
@@ -874,7 +894,6 @@ class Menu extends Widget {
    */
   protected onBeforeDetach(msg: Message): void {
     this.node.removeEventListener('mouseup', this);
-    //this.node.removeEventListener('mousedown', this);
     this.node.removeEventListener('mousemove', this);
     this.node.removeEventListener('mouseleave', this);
     this.node.removeEventListener('contextmenu', this);
@@ -899,7 +918,7 @@ class Menu extends Widget {
 
     // Add the active class to the active item.
     if (this._activeIndex !== -1) {
-      this._nodes.at(this._activeIndex).classList.add(ACTIVE_CLASS);
+      nodes.at(this._activeIndex).classList.add(ACTIVE_CLASS);
     }
 
     // Hide the extra separator nodes.
@@ -910,9 +929,9 @@ class Menu extends Widget {
    * A message handler invoked on a `'close-request'` message.
    */
   protected onCloseRequest(msg: Message): void {
-    // Cancel any pending open or close.
-    this._cancelPendingOpen();
-    this._cancelPendingClose();
+    // Cancel the pending timers.
+    this._cancelOpenTimer();
+    this._cancelCloseTimer();
 
     // Reset the active index.
     this.activeIndex = -1;
@@ -920,8 +939,8 @@ class Menu extends Widget {
     // Close any open child menu.
     let childMenu = this._childMenu;
     if (childMenu) {
+      this._childIndex = -1;
       this._childMenu = null;
-      this._childItem = null;
       childMenu._parentMenu = null;
       childMenu.close();
     }
@@ -930,19 +949,24 @@ class Menu extends Widget {
     let parentMenu = this._parentMenu;
     if (parentMenu) {
       this._parentMenu = null;
-      parentMenu._cancelPendingOpen();
-      parentMenu._cancelPendingClose();
+      parentMenu._cancelOpenTimer();
+      parentMenu._cancelCloseTimer();
+      parentMenu._childIndex = -1;
       parentMenu._childMenu = null;
-      parentMenu._childItem = null;
     }
 
-    // Ensure this menu is detached.
+    // If the menu is parented, remove it and emit the closed signal.
     if (this.parent) {
       this.parent = null;
-      //this.closed.emit(void 0);
-    } else if (this.isAttached) {
+      this.closed.emit(void 0);
+      return;
+    }
+
+    // If the menu is attached, detach it and emit the closed signal.
+    if (this.isAttached) {
       Widget.detach(this);
-      //this.closed.emit(void 0);
+      this.closed.emit(void 0);
+      return;
     }
   }
 
@@ -967,39 +991,30 @@ class Menu extends Widget {
     let y = event.clientY;
     let i = findIndex(this._nodes, node => hitTest(node, x, y));
 
-    // Bail early if the mouse is already over the active index.
-    if (i !== this._activeIndex) {
+    // Bail if no item is under the mouse.
+    if (i === -1) {
       return;
     }
 
-    let item = this.activeItem;
-    if (!item || !item.submenu) {
+    // Bail if the item is not selectable
+    let item = this._items.at(i);
+    if (!Private.isSelectable(item)) {
       return;
     }
 
-    if (item === this._childItem) {
-      this._cancelPendingClose();
-    } else {
-      this._closeChildMenu();
-      this._openChildMenu(item, this._nodes.at(i));
+    // Ensure the active index is set.
+    this.activeIndex = i;
+
+    // If the item is a submenu, open it immediately.
+    if (item.type === 'submenu') {
+      this._cancelOpenTimer();
+      this._cancelCloseTimer();
+      this._openChildMenu();
+      return;
     }
 
-    // // Bail if there is no active item.
-    // let item = this.activeItem;
-    // if (!item) {
-    //   return;
-    // }
-
-    // // Bail if the active node does not contain the clicked node.
-    // if (!this.activeNode.contains(event.target as HTMLElement)) {
-    //   return;
-    // }
-
-    // Trigger the item
-    // let node = this._nodes[this.activeIndex];
-    // if (node && node.contains(event.target as HTMLElement)) {
-    //   this.triggerActiveItem();
-    // }
+    // Otherwise, trigger the item and close the menu hierarchy.
+    this._triggerItem(item);
   }
 
   /**
@@ -1019,30 +1034,40 @@ class Menu extends Widget {
       return;
     }
 
-    // Update the active index.
+    // Update and coerce the active index.
     this.activeIndex = i;
+    i = this.activeIndex;
 
     // Synchronize the active ancestor items.
-    this._syncAncestors();
+    for (let menu = this._parentMenu; menu; menu = menu._parentMenu) {
+      menu._cancelOpenTimer();
+      menu._cancelCloseTimer();
+      menu.activeIndex = menu._childIndex;
+    }
 
-    // Start the close timer for an open child menu.
-    // this._closeChildMenu();
-
-    // Cancel any pending open menu timer.
-    this._cancelPendingOpen();
-
-    // Bail if the active item has no submenu.
-    let item = this.activeItem;
-    if (!item || !item.submenu) {
+    // If the index is the current child index, cancel the timers.
+    if (i === this._childIndex) {
+      this._cancelOpenTimer();
+      this._cancelCloseTimer();
       return;
     }
 
-    // If the item has a submenu, open it or keep it open.
-    // if (item === this._childItem) {
-    //   this._cancelPendingClose();
-    // } else {
-    //   this._openChildMenuDelayed(item, this._nodes.at(i));
-    // }
+    // If a child menu is currently open, start the close timer.
+    if (this._childIndex !== -1) {
+      this._startCloseTimer();
+    }
+
+    // Cancel the open timer to give a full delay for opening.
+    this._cancelOpenTimer();
+
+    // Bail if the active item is not a valid submenu item.
+    let item = this.activeItem;
+    if (!item || item.type !== 'submenu' || !item.submenu) {
+      return;
+    }
+
+    // Start the open timer to open the active item submenu.
+    this._startOpenTimer();
   }
 
   /**
@@ -1053,79 +1078,23 @@ class Menu extends Widget {
    */
   private _evtMouseLeave(event: MouseEvent): void {
     // Cancel any pending submenu opening.
-    this._cancelPendingOpen();
+    this._cancelOpenTimer();
 
-    // Bail if the mouse moved over the child menu.
-    let child = this._childMenu;
-    if (child && hitTest(child.node, event.clientX, event.clientY)) {
+    // If there is no open child menu, just reset the active index.
+    if (!this._childMenu) {
+      this.activeIndex = -1;
       return;
     }
 
-    // Reset the active index.
+    // If the mouse is over the child menu, cancel the close timer.
+    if (hitTest(this._childMenu.node, event.clientX, event.clientY)) {
+      this._cancelCloseTimer();
+      return;
+    }
+
+    // Otherwise, reset the active index and start the close timer.
     this.activeIndex = -1;
-
-    // Close any open child menu.
-    this._closeChildMenu();
-  }
-
-  /**
-   * Handle the `'keydown'` event for the menu.
-   *
-   * #### Notes
-   * This listener is attached to the document node.
-   */
-  private _evtKeyDown(event: KeyboardEvent): void {
-    // Only process the event if the menu is a leaf.
-    if (this._childMenu) {
-      return;
-    }
-
-    // event.stopPropagation();
-    // let leaf = this.leafMenu;
-    // switch (event.keyCode) {
-    // case 13:  // Enter
-    //   event.preventDefault();
-    //   leaf.triggerActiveItem();
-    //   break;
-    // case 27:  // Escape
-    //   event.preventDefault();
-    //   leaf.close();
-    //   break;
-    // case 37:  // Left Arrow
-    //   event.preventDefault();
-    //   if (leaf !== this) leaf.close();
-    //   break;
-    // case 38:  // Up Arrow
-    //   event.preventDefault();
-    //   leaf.activatePreviousItem();
-    //   break;
-    // case 39:  // Right Arrow
-    //   event.preventDefault();
-    //   leaf.openActiveItem();
-    //   break;
-    // case 40:  // Down Arrow
-    //   event.preventDefault();
-    //   leaf.activateNextItem();
-    //   break;
-    // }
-  }
-
-  /**
-   * Handle the `'keypress'` event for the menu.
-   *
-   * #### Notes
-   * This listener is attached to the document node.
-   */
-  private _evtKeyPress(event: KeyboardEvent): void {
-    // Only process the event if the menu is a leaf.
-    if (this._childMenu) {
-      return;
-    }
-
-    // event.preventDefault();
-    // event.stopPropagation();
-    // let key = String.fromCharCode(event.charCode);
-    // this.leafMenu.activateMnemonicItem(key);
+    this._startCloseTimer();
   }
 
   /**
@@ -1134,178 +1103,165 @@ class Menu extends Widget {
    * #### Notes
    * This listener is attached to the document node.
    */
-  private _evtMouseDown(event: MouseEvent): void {
-    // Only process the event if the menu is a root.
-    if (this._parentMenu) {
-      return;
-    }
+  // private _evtMouseDown(event: MouseEvent): void {
+  //   // // Only process the event if the menu is a root.
+  //   // if (this._parentMenu) {
+  //   //   return;
+  //   // }
 
-    // Hit test the menu hierarchy.
-    let hit = false;
-    let menu: Menu = this;
-    let x = event.clientX;
-    let y = event.clientY;
-    while (!hit && menu) {
-      hit = hitTest(menu.node, x, y);
-      menu = menu._childMenu;
-    }
+  //   // // Hit test the menu hierarchy.
+  //   // let hit = false;
+  //   // let menu: Menu = this;
+  //   // let x = event.clientX;
+  //   // let y = event.clientY;
+  //   // while (!hit && menu) {
+  //   //   hit = hitTest(menu.node, x, y);
+  //   //   menu = menu._childMenu;
+  //   // }
 
-    // If a child menu was hit, stop the propagation.
-    if (hit) {
-      // TODO stop propagation here?
-      return;
-    }
+  //   // // If a child menu was hit, stop the propagation.
+  //   // if (hit) {
+  //   //   // TODO stop propagation here?
+  //   //   return;
+  //   // }
 
-    // Otherwise, close the menu hierarchy. The event is allowed to
-    // propagate so that other document listeners can act on it.
-    this.close();
-  }
-
-  /**
-   * Synchronize the active items of the ancestor hierarchy.
-   *
-   * ### Note
-   * This ensures that the proper child items are activated for the
-   * ancestors and that pending open and close tasks are canceled.
-   */
-  private _syncAncestors(): void {
-    //
-    let menu = this._parentMenu;
-    while (menu) {
-      //
-      menu._cancelPendingOpen();
-      menu._cancelPendingClose();
-
-      //
-      menu.activeIndex = indexOf(menu._items, menu._childItem);
-
-      //
-      menu = menu._parentMenu;
-    }
-  }
+  //   // // Otherwise, close the menu hierarchy. The event is allowed to
+  //   // // propagate so that other document listeners can act on it.
+  //   // this.close();
+  // }
 
   /**
-   * Open a menu item's submenu using the given node for location.
+   * Open the child menu at the active index immediately.
    *
-   * #### Notes
-   * This opens the child menu immediately.
-   *
-   * Any pending open operation will be canceled.
-   *
-   * If the given item is already open, this is a no-op.
+   * If a different child menu is already open, it will be closed.
    */
-  private _openChildMenu(item: MenuItem, node: HTMLElement): void {
-    //
-    if (item === this._childItem) {
+  private _openChildMenu(): void {
+    // If the item is not a valid submenu, just close the child menu.
+    let item = this.activeItem;
+    if (!item || item.type !== 'submenu' || !item.submenu) {
+      this._closeChildMenu();
       return;
     }
 
-    //
-    this._cancelPendingOpen();
-
-    //
+    // Do nothing if the child menu will not change.
     let menu = item.submenu;
+    if (menu === this._childMenu) {
+      return;
+    }
 
-    //
-    this._childItem = item;
+    // Ensure the current child menu is closed.
+    this._closeChildMenu();
+
+    // Update the private child state.
     this._childMenu = menu;
+    this._childIndex = this._activeIndex;
 
-    //
+    // Set the parent menu reference for the child.
     menu._parentMenu = this;
 
-    //
-    Private.openSubmenu(menu, node);
+    // Open the submenu at the active node.
+    Private.openSubmenu(menu, this.activeItemNode);
   }
 
   /**
-   * Open a menu item's submenu using the given node for location.
+   * Close the open child menu immediately.
    *
-   * #### Notes
-   * This opens the child menu on a delay.
-   *
-   * Any pending open operation will be canceled.
-   *
-   * If the given item is already open, this is a no-op.
-   */
-  private _openChildMenuDelayed(item: MenuItem, node: HTMLElement): void {
-    //
-    if (item === this._childItem) {
-      return;
-    }
-
-    //
-    this._cancelPendingOpen();
-
-    //
-    this._openTimerId = setTimeout(() => {
-      this._openTimerId = 0;
-      this._openChildMenu(item, node);
-    }, OPEN_DELAY);
-  }
-
-  /**
-   * Close the currently open child menu using a delayed task.
-   *
-   * #### Notes
-   * This is a no-op if a task is pending or if there is no child menu.
+   * This is a no-op if a child menu is not open.
    */
   private _closeChildMenu(): void {
-    //
-    if (this._closeTimerId || !this._childMenu) {
+    // Bail early if a child menu is not open.
+    let child = this._childMenu
+    if (!child) {
       return;
     }
 
-    //
-    this._closeTimerId = setTimeout(() => {
-      //
-      this._closeTimerId = 0;
+    // Reset the private child state.
+    this._childIndex = -1;
+    this._childMenu = null;
 
-      //
-      let childMenu = this._childMenu;
-      if (!childMenu) {
-        return;
-      }
+    // Remove the parent menu reference from the child.
+    child._parentMenu = null;
 
-      //
-      this._childMenu = null;
-      this._childItem = null;
-
-      //
-      childMenu._parentMenu = null;
-      childMenu.close();
-    }, CLOSE_DELAY);
+    // Actually close the child menu.
+    child.close();
   }
 
   /**
-   * Cancel any pending child menu open task.
+   * Trigger the given menu item.
+   *
+   * This emits the triggered signal for each ancestor menu in the
+   * hierarchy, then closes the entire hierarchy from the root menu.
    */
-  private _cancelPendingOpen(): void {
-    if (this._openTimerId) {
-      clearTimeout(this._openTimerId);
-      this._openTimerId = 0;
+  private _triggerItem(item: MenuItem): void {
+    let root: Menu;
+    let menu: Menu = this;
+    while (menu) {
+      root = menu;
+      menu.triggered.emit(item);
+      menu = menu._parentMenu;
+    }
+    root.close();
+  }
+
+  /**
+   * Start the open timer, unless it is already pending.
+   */
+  private _startOpenTimer(): void {
+    if (this._openTimerID === 0) {
+      this._openTimerID = setTimeout(() => {
+        this._openTimerID = 0;
+        this._openChildMenu();
+      }, TIMER_DELAY);
     }
   }
 
   /**
-   * Cancel any pending child menu close task.
+   * Start the close timer, unless it is already pending.
    */
-  private _cancelPendingClose(): void {
-    if (this._closeTimerId) {
-      clearTimeout(this._closeTimerId);
-      this._closeTimerId = 0;
+  private _startCloseTimer(): void {
+    if (this._closeTimerID === 0) {
+      this._closeTimerID = setTimeout(() => {
+        this._closeTimerID = 0;
+        this._closeChildMenu();
+      }, TIMER_DELAY);
     }
   }
 
-  private _openTimerId = 0;
-  private _closeTimerId = 0;
+  /**
+   * Cancel the open timer, if the timer is pending.
+   */
+  private _cancelOpenTimer(): void {
+    if (this._openTimerID !== 0) {
+      clearTimeout(this._openTimerID);
+      this._openTimerID = 0;
+    }
+  }
+
+  /**
+   * Cancel the close timer, if the timer is pending.
+   */
+  private _cancelCloseTimer(): void {
+    if (this._closeTimerID !== 0) {
+      clearTimeout(this._closeTimerID);
+      this._closeTimerID = 0;
+    }
+  }
+
+  private _childIndex = -1;
+  private _openTimerID = 0;
+  private _closeTimerID = 0;
   private _activeIndex = -1;
   private _childMenu: Menu = null;
   private _parentMenu: Menu = null;
-  private _childItem: MenuItem = null;
   private _renderer: IMenuItemRenderer;
   private _items = new Vector<MenuItem>();
   private _nodes = new Vector<HTMLElement>();
 }
+
+
+// Define the signals for the `Menu` class.
+defineSignal(Menu.prototype, 'closed');
+defineSignal(Menu.prototype, 'triggered');
 
 
 /**
@@ -1317,16 +1273,7 @@ namespace Private {
    */
   export
   function isSelectable(item: MenuItem): boolean {
-    if (item.type === 'separator') {
-      return false;
-    }
-    if (item.disabled) {
-      return false;
-    }
-    if (item.type === 'submenu') {
-      return !!item.submenu;
-    }
-    return !!item.handler;
+    return !(item.type === 'separator' || item.disabled || item.hidden);
   }
 
   /**
