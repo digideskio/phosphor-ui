@@ -797,10 +797,13 @@ class Menu extends Widget {
    * The index will be clamped to the bounds of the items.
    */
   insertItem(index: number, item: MenuItem): void {
-    // TODO - close if open?
+    // Close the menu if it's attached.
+    if (this.isAttached) {
+      this.close();
+    }
 
     // Reset the active index.
-    this.activeIndex = -1;
+    this._activeIndex = -1;
 
     // Clamp the insert index to the vector bounds.
     let i = Math.max(0, Math.min(Math.floor(index), this._items.length));
@@ -834,10 +837,13 @@ class Menu extends Widget {
       return;
     }
 
-    // TODO close if open?
+    // Close the menu if it's attached.
+    if (this.isAttached) {
+      this.close();
+    }
 
     // Reset the active index.
-    this.activeIndex = -1;
+    this._activeIndex = -1;
 
     // Look up the item node.
     let node = this._nodes.at(i);
@@ -854,10 +860,13 @@ class Menu extends Widget {
    * Remove all menu items from the menu.
    */
   clearItems(): void {
-    // TODO close if open?
+    // Close the menu if it's attached.
+    if (this.isAttached) {
+      this.close();
+    }
 
     // Reset the active index.
-    this.activeIndex = -1;
+    this._activeIndex = -1;
 
     // Clear the item and node vectors.
     this._items.clear();
