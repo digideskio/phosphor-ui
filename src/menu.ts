@@ -870,9 +870,9 @@ class Menu extends Widget {
     // case 'keypress':
     //   this._evtKeyPress(event as KeyboardEvent);
     //   break;
-    // case 'mousedown':
-    //   this._evtMouseDown(event as MouseEvent);
-    //   break;
+    case 'mousedown':
+      this._evtMouseDown(event as MouseEvent);
+      break;
     }
   }
 
@@ -991,19 +991,14 @@ class Menu extends Widget {
     let y = event.clientY;
     let i = findIndex(this._nodes, node => hitTest(node, x, y));
 
-    // Bail if no item is under the mouse.
-    if (i === -1) {
-      return;
-    }
-
-    // Bail if the item is not selectable
-    let item = this._items.at(i);
-    if (!Private.isSelectable(item)) {
-      return;
-    }
-
-    // Ensure the active index is set.
+    // Update the active index.
     this.activeIndex = i;
+
+    // Bail if there is no active item.
+    let item = this.activeItem;
+    if (!item) {
+      return;
+    }
 
     // If the item is a submenu, open it immediately.
     if (item.type === 'submenu') {
@@ -1103,32 +1098,27 @@ class Menu extends Widget {
    * #### Notes
    * This listener is attached to the document node.
    */
-  // private _evtMouseDown(event: MouseEvent): void {
-  //   // // Only process the event if the menu is a root.
-  //   // if (this._parentMenu) {
-  //   //   return;
-  //   // }
+  private _evtMouseDown(event: MouseEvent): void {
+    // Only process the event if the menu is the root menu.
+    if (this._parentMenu) {
+      return;
+    }
 
-  //   // // Hit test the menu hierarchy.
-  //   // let hit = false;
-  //   // let menu: Menu = this;
-  //   // let x = event.clientX;
-  //   // let y = event.clientY;
-  //   // while (!hit && menu) {
-  //   //   hit = hitTest(menu.node, x, y);
-  //   //   menu = menu._childMenu;
-  //   // }
+    // The mouse button which was pressed is irrelevant.
 
-  //   // // If a child menu was hit, stop the propagation.
-  //   // if (hit) {
-  //   //   // TODO stop propagation here?
-  //   //   return;
-  //   // }
+    // Stop the event if the mouse is over a menu in the hierarchy.
+    for (let menu: Menu = this; menu; menu = menu._childMenu) {
+      if (hitTest(menu.node, event.clientX, event.clientY)) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    }
 
-  //   // // Otherwise, close the menu hierarchy. The event is allowed to
-  //   // // propagate so that other document listeners can act on it.
-  //   // this.close();
-  // }
+    // Otherwise, close the menu hierarchy. The event is allowed to
+    // propagate so that focus can transition to the targeted node.
+    this.close();
+  }
 
   /**
    * Open the child menu at the active index immediately.
