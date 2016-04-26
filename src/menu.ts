@@ -562,6 +562,7 @@ class Menu extends Widget {
    */
   constructor(renderer: IMenuItemRenderer = MenuItemRenderer.instance) {
     super();
+    // TODO init options ?
     this._renderer = renderer;
     this.addClass(MENU_CLASS);
     this.setFlag(WidgetFlag.DisallowLayout);
@@ -581,7 +582,10 @@ class Menu extends Widget {
    * A signal emitted when the menu is closed.
    *
    * #### Notes
-   * TODO
+   * This signal is emitted in response to a close request.
+   *
+   * A menu is closed automatically when an item is triggered in the
+   * hierarchy, or when the Escape key is pressed for an open menu.
    */
   closed: ISignal<Menu, void>;
 
@@ -589,7 +593,11 @@ class Menu extends Widget {
    * A signal emitted when a menu item in the hierarchy is triggered.
    *
    * #### Notes
-   * TODO
+   * This signal is emitted whenever any descendant item in the menu
+   * hierarchy is triggered by user action. This means that is only
+   * necessary to connect to the triggered signal of the root menu.
+   *
+   * The argument for the signal is the item which was triggered.
    */
   triggered: ISignal<Menu, MenuItem>;
 
