@@ -120,7 +120,7 @@ const HIDDEN_CLASS = 'p-mod-hidden';
 const TIMER_DELAY = 300;
 
 /**
- * The horizontal pixel overlap for open submenus.
+ * The horizontal pixel overlap for an open submenu.
  */
 const SUBMENU_OVERLAP = 3;
 
@@ -532,7 +532,7 @@ namespace MenuItemRenderer {
    * A singleton instance of the `MenuItemRenderer` class.
    *
    * #### Notes
-   * This is default item renderer instance used by `TabBar`.
+   * This is default item renderer instance used by `Menu`.
    */
   export
   const instance = new MenuItemRenderer();
