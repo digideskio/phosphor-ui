@@ -540,6 +540,33 @@ namespace MenuItemRenderer {
 
 
 /**
+ * An options object for the `open` method on a [[Menu]].
+ */
+export
+interface IOpenOptions {
+  /**
+   * Whether to force the X position of the menu.
+   *
+   * Setting to `true` will disable the logic which repositions the
+   * X coordinate of the menu if it will not fit entirely on screen.
+   *
+   * The default is `false`.
+   */
+  forceX?: boolean;
+
+  /**
+   * Whether to force the Y position of the menu.
+   *
+   * Setting to `true` will disable the logic which repositions the
+   * Y coordinate of the menu if it will not fit entirely on screen.
+   *
+   * The default is `false`.
+   */
+  forceY?: boolean;
+}
+
+
+/**
  * A widget which displays menu items as a canonical menu.
  */
 export
@@ -848,6 +875,8 @@ class Menu extends Widget {
    *
    * @param y - The client Y coordinate of the menu location.
    *
+   * @param options - The additional options for opening the menu.
+   *
    * #### Notes
    * The menu will be opened at the given location unless it will not
    * fully fit on the screen. If it will not fit, it will be adjusted
@@ -855,12 +884,13 @@ class Menu extends Widget {
    *
    * This is a no-op if the menu is already attached to the DOM.
    */
-  open(x: number, y: number): void {
-    // TODO open options for forcing position
+  open(x: number, y: number, options: IOpenOptions = {}): void {
     if (this.isAttached) {
       return;
     }
-    Private.openRootMenu(this, x, y, false, false);
+    let forceX = options.forceX || false;
+    let forceY = options.forceY || false;
+    Private.openRootMenu(this, x, y, forceX, forceY);
   }
 
   /**
