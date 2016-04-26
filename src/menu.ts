@@ -6,6 +6,10 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
+  IterableOrArrayLike, each
+} from 'phosphor-core/lib/iteration';
+
+import {
   Message, sendMessage
 } from 'phosphor-core/lib/messaging';
 
@@ -133,6 +137,13 @@ type MenuItemType = 'normal' | 'check' | 'radio' | 'submenu' | 'separator';
 
 
 /**
+ * A type alias for a object which can be converted to an array.
+ */
+export
+type MenuTemplate = IterableOrArrayLike<MenuItem | IMenuItemOptions>;
+
+
+/**
  * An options object for initializing a menu item.
  */
 export
@@ -188,9 +199,9 @@ interface IMenuItemOptions {
   args?: any;
 
   /**
-   * The submenu for the menu item.
+   * The submenu or submenu template for the menu item.
    */
-  submenu?: Menu;
+  submenu?: Menu | MenuTemplate;
 }
 
 
@@ -244,7 +255,7 @@ class MenuItem {
       this.args = options.args;
     }
     if (options.submenu !== void 0) {
-      this.submenu = options.submenu;
+      this.submenu = Private.asMenu(options.submenu);
     }
   }
 
@@ -595,6 +606,24 @@ class Menu extends Widget {
   }
 
   /**
+   * Create a menu from a static template.
+   *
+   * @param template - A menu template to convert into a menu.
+   *
+   * @returns A new menu widget populated from the template.
+   *
+   * #### Notes
+   * This method operates recursively, constructing the full menu
+   * hierarchy using the default `Menu` and `MenuItem` constructors.
+   *
+   * If custom menus or menu items are required, this method should
+   * be used, and the custom objects should be instantiated directly.
+   */
+  static fromTemplate(template: MenuTemplate): Menu {
+    return Private.asMenu(template);
+  }
+
+  /**
    * Construct a new menu.
    *
    * @param options - The options for initializing the menu.
@@ -791,9 +820,10 @@ class Menu extends Widget {
   /**
    * Add a menu item to the end of the menu.
    *
-   * @param item - The menu item to add to the menu.
+   * @param item - The menu item to add to the menu, or an options
+   *   object to be converted into a menu item.
    */
-  addItem(item: MenuItem): void {
+  addItem(item: MenuItem | IMenuOptions): void {
     this.insertItem(this._items.length, item);
   }
 
@@ -802,12 +832,13 @@ class Menu extends Widget {
    *
    * @param index - The index at which to insert the item.
    *
-   * @param item - The menu item to insert into the menu.
+   * @param item - The menu item to insert into the menu, or an options
+   *   object to be converted into a menu item.
    *
    * #### Notes
    * The index will be clamped to the bounds of the items.
    */
-  insertItem(index: number, item: MenuItem): void {
+  insertItem(index: number, item: MenuItem | IMenuOptions): void {
     // Close the menu if it's attached.
     if (this.isAttached) {
       this.close();
@@ -823,7 +854,7 @@ class Menu extends Widget {
     let node = this._renderer.createItemNode();
 
     // Insert the item and node into the vectors.
-    this._items.insert(i, item);
+    this._items.insert(i, Private.asMenuItem(item));
     this._nodes.insert(i, node);
 
     // Look up the next sibling node.
@@ -1491,6 +1522,29 @@ defineSignal(Menu.prototype, 'triggered');
  * The namespace for the private module data.
  */
 namespace Private {
+  /**
+   * A coerce a menu item or options into a real menu item.
+   */
+  export
+  function asMenuItem(value: MenuItem | IMenuItemOptions): MenuItem {
+    return value instanceof MenuItem ? value : new MenuItem(value);
+  }
+
+  /**
+   * Coerce a menu or menu template into a real menu.
+   */
+  export
+  function asMenu(value: Menu | MenuTemplate): Menu {
+    let result: Menu;
+    if (value instanceof Menu) {
+      result = value;
+    } else {
+      result = new Menu();
+      each(value, item => { result.addItem(item); });
+    }
+    return result;
+  }
+
   /**
    * Test whether a menu item is selectable.
    */
