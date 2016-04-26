@@ -567,6 +567,18 @@ interface IOpenOptions {
 
 
 /**
+ * An options object for creating a menu.
+ */
+export
+interface IMenuOptions {
+  /**
+   * A custom renderer for creating new menu item nodes.
+   */
+  renderer?: IMenuItemRenderer;
+}
+
+
+/**
  * A widget which displays menu items as a canonical menu.
  */
 export
@@ -585,14 +597,13 @@ class Menu extends Widget {
   /**
    * Construct a new menu.
    *
-   * @param renderer - The item renderer for creating new item nodes.
+   * @param options - The options for initializing the menu.
    */
-  constructor(renderer: IMenuItemRenderer = MenuItemRenderer.instance) {
+  constructor(options: IMenuOptions = {}) {
     super();
-    // TODO init options ?
-    this._renderer = renderer;
     this.addClass(MENU_CLASS);
     this.setFlag(WidgetFlag.DisallowLayout);
+    this._renderer = options.renderer || MenuItemRenderer.instance;
   }
 
   /**
