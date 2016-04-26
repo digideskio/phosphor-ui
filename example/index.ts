@@ -6,47 +6,112 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  TabPanel
-} from '../lib/tabpanel';
+  each
+} from 'phosphor-core/lib/iteration';
 
 import {
-  Widget
-} from '../lib/widget';
+  Menu, MenuItem, MenuTemplate
+} from '../lib/menu';
 
 import '../styles/base.css';
 
 import './index.css';
 
 
-function createContent(title: string): Widget {
-  let tooltip = `This is a tooltip message for: ${title}.`;
-  let widget = new Widget();
-  widget.addClass('content');
-  widget.addClass(title.toLowerCase());
-  widget.title.text = title;
-  widget.title.closable = true;
-  widget.title.tooltip = tooltip;
-  return widget;
-}
+const MENU_TEMPLATE: MenuTemplate = [
+  {
+    text: '&&Copy',
+    icon: 'fa fa-copy',
+    shortcut: 'Ctrl+C',
+    command: 'copy'
+  },
+  {
+    text: 'Cu&&t',
+    icon: 'fa fa-cut',
+    shortcut: 'Ctrl+X',
+    command: 'cut'
+  },
+  {
+    text: '&&Paste',
+    icon: 'fa fa-paste',
+    shortcut: 'Ctrl+V',
+    command: 'paste'
+  },
+  {
+    type: 'separator'
+  },
+  {
+    text: '&&New Tab',
+    command: 'new-tab'
+  },
+  {
+    text: '&&Close Tab',
+    command: 'close-tab'
+  },
+  {
+    type: 'check',
+    checked: true,
+    text: '&&Save On Exit',
+    command: 'save-on-exit'
+  },
+  {
+    type: 'separator'
+  },
+  {
+    text: 'Task Manager',
+    disabled: true
+  },
+  {
+    type: 'separator'
+  },
+  {
+    type: 'submenu',
+    text: 'More...',
+    submenu: [
+      {
+        text: 'One',
+        command: 'one'
+      },
+      {
+        text: 'Two',
+        command: 'two'
+      },
+      {
+        text: 'Three',
+        command: 'three'
+      },
+      {
+        text: 'Four',
+        command: 'four'
+      }
+    ]
+  },
+  {
+    type: 'separator'
+  },
+  {
+    text: 'Close',
+    icon: 'fa fa-close',
+    command: 'close'
+  }
+];
 
 
 function main(): void {
-  let red = createContent('Red');
-  let yellow = createContent('Yellow');
-  let blue = createContent('Blue');
-  let green = createContent('Green');
 
-  let panel = new TabPanel();
-  panel.id = 'main';
-  panel.tabsMovable = true;
-  panel.addWidget(red);
-  panel.addWidget(yellow);
-  panel.addWidget(blue);
-  panel.addWidget(green);
+  let menu = Menu.fromTemplate(MENU_TEMPLATE);
 
-  Widget.attach(panel, document.body);
+  menu.triggered.connect((sender, item) => {
+    if (item.command === 'save-on-exit') {
+      item.checked = !item.checked;
+    }
+    console.log('triggered:', item.command);
+  });
 
-  window.onresize = () => { panel.update(); };
+  document.addEventListener('contextmenu', (event: MouseEvent) => {
+    event.preventDefault();
+    menu.open(event.clientX, event.clientY);
+  });
 }
 
 
