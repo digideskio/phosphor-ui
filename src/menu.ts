@@ -867,9 +867,9 @@ class Menu extends Widget {
     case 'keydown':
       this._evtKeyDown(event as KeyboardEvent);
       break;
-    // case 'keypress':
-    //   this._evtKeyPress(event as KeyboardEvent);
-    //   break;
+    case 'keypress':
+      this._evtKeyPress(event as KeyboardEvent);
+      break;
     case 'mousedown':
       this._evtMouseDown(event as MouseEvent);
       break;
@@ -1231,6 +1231,27 @@ class Menu extends Widget {
   }
 
   /**
+   * Handle the `'keypress'` event for the menu.
+   *
+   * #### Notes
+   * This listener is attached to the document node.
+   */
+  private _evtKeyPress(event: KeyboardEvent): void {
+    // Only process the event if the menu is a leaf menu.
+    if (this._childMenu) {
+      return;
+    }
+
+    // Kill the event entirely.
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Activate the next mnemonic item.
+    let key = String.fromCharCode(event.charCode);
+    Private.activateNextMnemonic(this, key);
+  }
+
+  /**
    * Handle the `'mousedown'` event for the menu.
    *
    * #### Notes
@@ -1493,6 +1514,32 @@ namespace Private {
         menu.activeIndex = k;
         return;
       }
+    }
+    menu.activeIndex = -1;
+  }
+
+  /**
+   * Activate the next mnemonic menu item in a menu.
+   *
+   * If no mnemonic is found, the index will be set to `-1`.
+   */
+  export
+  function activateNextMnemonic(menu: Menu, char: string): void {
+    let items = menu.items;
+    let c = char.toUpperCase();
+    let j = menu.activeIndex + 1;
+    for (let i = 0, n = items.length; i < n; ++i) {
+      let k = (i + j) % n;
+      let item = items.at(k);
+      if (!isSelectable(item)) {
+        continue;
+      }
+      let match = item.text.match(/&&\w/);
+      if (!match || match[0][2].toUpperCase() !== c) {
+        continue;
+      }
+      menu.activeIndex = k;
+      return;
     }
     menu.activeIndex = -1;
   }
