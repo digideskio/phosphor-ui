@@ -848,6 +848,7 @@ class Menu extends Widget {
    * This is a no-op if the menu is already attached to the DOM.
    */
   open(x: number, y: number): void {
+    // TODO open options for forcing position
     if (this.isAttached) {
       return;
     }
@@ -1264,8 +1265,7 @@ class Menu extends Widget {
     event.stopPropagation();
 
     // Activate the next mnemonic item.
-    let key = String.fromCharCode(event.charCode);
-    Private.activateNextMnemonic(this, key);
+    Private.activateNextMnemonic(this, String.fromCharCode(event.charCode));
   }
 
   /**
@@ -1355,7 +1355,7 @@ class Menu extends Widget {
   /**
    * Trigger the given menu item.
    *
-   * This emits the triggered signal for each ancestor menu in the
+   * This emits the `triggered` signal for each ancestor menu in the
    * hierarchy, then closes the entire hierarchy from the root menu.
    */
   private _triggerItem(item: MenuItem): void {
@@ -1578,23 +1578,23 @@ namespace Private {
    */
   export
   function openRootMenu(menu: Menu, x: number, y: number, forceX: boolean, forceY: boolean): void {
-    //
+    // Ensure the menu is updated before opening.
     sendMessage(menu, WidgetMessage.UpdateRequest);
 
-    //
+    // Get the current position and size of the main viewport.
     let px = window.pageXOffset;
     let py = window.pageYOffset;
     let cw = document.documentElement.clientWidth;
     let ch = document.documentElement.clientHeight;
 
-    //
+    // Compute the maximum allowed height for the menu.
     let maxHeight = ch - (forceY ? y : 0);
 
-    //
+    // Fetch common variables.
     let node = menu.node;
     let style = node.style;
 
-    //
+    // Clear the menu geometry and prepare it for measuring.
     style.top = '';
     style.left = '';
     style.width = '';
@@ -1602,23 +1602,23 @@ namespace Private {
     style.visibility = 'hidden';
     style.maxHeight = `${maxHeight}px`;
 
-    //
+    // Attach the menu to the document.
     Widget.attach(menu, document.body);
 
-    //
+    // Expand the menu width by the scrollbar size, if present.
     if (node.scrollHeight > maxHeight) {
       style.width = `${2 * node.offsetWidth - node.clientWidth}px`;
     }
 
-    //
+    // Measure the size of the menu.
     let { width, height } = node.getBoundingClientRect();
 
-    //
+    // Adjust the X position of the menu to fit on-screen.
     if (!forceX && (x + width > px + cw)) {
       x = px + cw - width;
     }
 
-    //
+    // Adjust the Y position of the menu to fit on-screen.
     if (!forceY && (y + height > py + ch)) {
       if (y > py + ch) {
         y = py + ch - height;
@@ -1627,11 +1627,11 @@ namespace Private {
       }
     }
 
-    //
+    // Update the position of the menu to the computed position.
     style.top = `${Math.max(0, y)}px`;
     style.left = `${Math.max(0, x)}px`;
 
-    //
+    // Finally, make the menu visible on the screen.
     style.visibility = '';
   }
 
@@ -1640,23 +1640,23 @@ namespace Private {
    */
   export
   function openSubmenu(menu: Menu, itemNode: HTMLElement): void {
-    //
+    // Ensure the menu is updated before opening.
     sendMessage(menu, WidgetMessage.UpdateRequest);
 
-    //
+    // Get the current position and size of the main viewport.
     let px = window.pageXOffset;
     let py = window.pageYOffset;
     let cw = document.documentElement.clientWidth;
     let ch = document.documentElement.clientHeight;
 
-    //
+    // Compute the maximum allowed height for the menu.
     let maxHeight = ch;
 
-    //
+    // Fetch common variables.
     let node = menu.node;
     let style = node.style;
 
-    //
+    // Clear the menu geometry and prepare it for measuring.
     style.top = '';
     style.left = '';
     style.width = '';
@@ -1664,44 +1664,44 @@ namespace Private {
     style.visibility = 'hidden';
     style.maxHeight = `${maxHeight}px`;
 
-    //
+    // Attach the menu to the document.
     Widget.attach(menu, document.body);
 
-    //
+    // Expand the menu width by the scrollbar size, if present.
     if (node.scrollHeight > maxHeight) {
       style.width = `${2 * node.offsetWidth - node.clientWidth}px`;
     }
 
-    //
+    // Measure the size of the menu.
     let { width, height } = node.getBoundingClientRect();
 
-    //
+    // Compute the box sizing for the menu.
     let box = boxSizing(menu.node);
 
-    //
+    // Get the bounding rect for the target item node.
     let itemRect = itemNode.getBoundingClientRect();
 
-    //
+    // Compute the target X position.
     let x = itemRect.right - SUBMENU_OVERLAP;
 
-    //
+    // Adjust the X position to fit on the screen.
     if (x + width > px + cw) {
       x = itemRect.left + SUBMENU_OVERLAP - width;
     }
 
-    //
+    // Compute the target Y position.
     let y = itemRect.top - box.borderTop - box.paddingTop;
 
-    //
+    // Adjust the Y position to fit on the screen.
     if (y + height > py + ch) {
       y = itemRect.bottom + box.borderBottom + box.paddingBottom - height;
     }
 
-    //
+    // Update the position of the menu to the computed position.
     style.top = `${Math.max(0, y)}px`;
     style.left = `${Math.max(0, x)}px`;
 
-    //
+    // Finally, make the menu visible on the screen.
     style.visibility = '';
   }
 }
