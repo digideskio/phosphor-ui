@@ -94,20 +94,10 @@ const VERTICAL_CLASS = 'p-mod-vertical';
 
 
 /**
- * The orientation of a split layout.
+ * A type alias for a split layout orientation.
  */
 export
-enum Orientation {
-  /**
-   * Left-to-right horizontal orientation.
-   */
-  Horizontal,
-
-  /**
-   * Top-to-bottom vertical orientation.
-   */
-  Vertical
-}
+type Orientation = 'horizontal' | 'vertical';
 
 
 /**
@@ -333,7 +323,7 @@ class SplitPanel extends Panel {
     let delta: number;
     let handle = layout.handles.at(index);
     let rect = handle.getBoundingClientRect();
-    if (layout.orientation === Orientation.Horizontal) {
+    if (layout.orientation === 'horizontal') {
       delta = event.clientX - rect.left;
     } else {
       delta = event.clientY - rect.top;
@@ -357,7 +347,7 @@ class SplitPanel extends Panel {
     let pos: number;
     let layout = this.layout as SplitLayout;
     let rect = this.node.getBoundingClientRect();
-    if (layout.orientation === Orientation.Horizontal) {
+    if (layout.orientation === 'horizontal') {
       pos = event.clientX - rect.left - this._pressData.delta;
     } else {
       pos = event.clientY - rect.top - this._pressData.delta;
@@ -415,18 +405,6 @@ class SplitPanel extends Panel {
  */
 export
 namespace SplitPanel {
-  /**
-   * A convenience alias of the `Horizontal` [[Orientation]].
-   */
-  export
-  const Horizontal = Orientation.Horizontal;
-
-  /**
-   * A convenience alias of the `Vertical` [[Orientation]].
-   */
-  export
-  const Vertical = Orientation.Vertical;
-
   /**
    * Get the split panel stretch factor for the given widget.
    *
@@ -600,7 +578,7 @@ class SplitLayout extends PanelLayout {
 
     // Compute the desired delta movement for the handle.
     let delta: number;
-    if (this._orientation === Orientation.Horizontal) {
+    if (this._orientation === 'horizontal') {
       delta = position - handle.offsetLeft;
     } else {
       delta = position - handle.offsetTop;
@@ -818,7 +796,7 @@ class SplitLayout extends PanelLayout {
     let minH = 0;
     let maxW = Infinity;
     let maxH = Infinity;
-    let horz = this._orientation === Orientation.Horizontal;
+    let horz = this._orientation === 'horizontal';
     if (horz) {
       minW = this._fixed;
       maxW = nVisible > 0 ? minW : maxW;
@@ -919,7 +897,7 @@ class SplitLayout extends PanelLayout {
 
     // Compute the adjusted layout space.
     let space: number;
-    let horz = this._orientation === Orientation.Horizontal;
+    let horz = this._orientation === 'horizontal';
     if (horz) {
       space = Math.max(0, width - this._fixed);
     } else {
@@ -965,7 +943,7 @@ class SplitLayout extends PanelLayout {
   private _renderer: IHandleRenderer;
   private _sizers = new Vector<BoxSizer>();
   private _handles = new Vector<HTMLElement>();
-  private _orientation = Orientation.Horizontal;
+  private _orientation: Orientation = 'horizontal';
 }
 
 
@@ -974,18 +952,6 @@ class SplitLayout extends PanelLayout {
  */
 export
 namespace SplitLayout {
-  /**
-   * A convenience alias of the `Horizontal` [[Orientation]].
-   */
-  export
-  const Horizontal = Orientation.Horizontal;
-
-  /**
-   * A convenience alias of the `Vertical` [[Orientation]].
-   */
-  export
-  const Vertical = Orientation.Vertical;
-
   /**
    * Get the split layout stretch factor for the given widget.
    *
@@ -1079,8 +1045,8 @@ namespace Private {
    */
   export
   function toggleOrientation(widget: Widget, orient: Orientation): void {
-    widget.toggleClass(HORIZONTAL_CLASS, orient === Orientation.Horizontal);
-    widget.toggleClass(VERTICAL_CLASS, orient === Orientation.Vertical);
+    widget.toggleClass(HORIZONTAL_CLASS, orient === 'horizontal');
+    widget.toggleClass(VERTICAL_CLASS, orient === 'vertical');
   }
 
   /**
