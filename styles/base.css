@@ -32,6 +32,58 @@ body.p-mod-override-cursor * {
 
 
 /*-----------------------------------------------------------------------------
+| menu
+|----------------------------------------------------------------------------*/
+.p-Menu {
+  position: absolute;
+  white-space: nowrap;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+
+.p-Menu-content {
+  margin: 0;
+  padding: 0;
+  display: table;
+  list-style-type: none;
+}
+
+
+.p-Menu-item {
+  display: table-row;
+}
+
+
+.p-Menu-item.p-mod-hidden {
+  display: none;
+}
+
+
+.p-Menu-itemIcon,
+.p-Menu-itemSubmenuIcon {
+  display: table-cell;
+  text-align: center;
+}
+
+
+.p-Menu-itemText {
+  display: table-cell;
+  text-align: left;
+}
+
+
+.p-Menu-itemShortcut {
+  display: table-cell;
+  text-align: right;
+}
+
+
+/*-----------------------------------------------------------------------------
 | splitpanel
 |----------------------------------------------------------------------------*/
 .p-SplitPanel-child {
