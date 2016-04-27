@@ -513,6 +513,16 @@ class TabBar extends Widget {
   }
 
   /**
+   * A read-only sequence of the titles in the tab bar.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get titles(): ISequence<Title> {
+    return this._titles;
+  }
+
+  /**
    * Get whether the tabs are movable by the user.
    *
    * #### Notes
@@ -533,13 +543,24 @@ class TabBar extends Widget {
   }
 
   /**
-   * A read-only sequence of the titles in the tab bar.
+   * Get the currently selected tab node.
    *
    * #### Notes
-   * This is a read-only property.
+   * This will be `null` if no tab is selected.
    */
-  get titles(): ISequence<Title> {
-    return this._titles;
+  get currentTabNode(): HTMLElement {
+    let i = this._currentIndex;
+    return i !== -1 ? this._tabs.at(i) : null;
+  }
+
+  /**
+   * Set the currently selected tab node.
+   *
+   * #### Notes
+   * If the tab does not exist, the tab will be set to `null`.
+   */
+  set currentTabNode(value: HTMLElement) {
+    this.currentIndex = indexOf(this._tabs, value);
   }
 
   /**
