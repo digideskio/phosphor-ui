@@ -74,29 +74,32 @@ const BOTTOM_TO_TOP_CLASS = 'p-mod-bottom-to-top';
 
 
 /**
- * The layout direction of a box layout.
+ * A type alias for a box layout direction.
  */
 export
-enum Direction {
+type Direction = (
+  'left-to-right' | 'right-to-left' | 'top-to-bottom' | 'bottom-to-top'
+);
+
+
+/**
+ * An options object for initializing a box panel.
+ */
+export
+interface IBoxPanelOptions {
   /**
-   * Left to right direction.
+   * The layout direction of the panel.
+   *
+   * The default is `'top-to-bottom'`.
    */
-  LeftToRight,
+  direction?: Direction;
 
   /**
-   * Right to left direction.
+   * The spacing between items in the panel.
+   *
+   * The default is `8`.
    */
-  RightToLeft,
-
-  /**
-   * Top to bottom direction.
-   */
-  TopToBottom,
-
-  /**
-   * Bottom to top direction.
-   */
-  BottomToTop
+  spacing?: number;
 }
 
 
@@ -117,10 +120,18 @@ class BoxPanel extends Panel {
 
   /**
    * Construct a new box panel.
+   *
+   * @param options - The options for initializing the box panel.
    */
-  constructor() {
+  constructor(options: IBoxPanelOptions = {}) {
     super();
     this.addClass(BOX_PANEL_CLASS);
+    if (options.direction !== void 0) {
+      this.direction = options.direction;
+    }
+    if (options.spacing !== void 0) {
+      this.spacing = options.spacing;
+    }
   }
 
   /**
@@ -172,30 +183,6 @@ class BoxPanel extends Panel {
  */
 export
 namespace BoxPanel {
-  /**
-   * A convenience alias of the `LeftToRight` [[Direction]].
-   */
-  export
-  const LeftToRight = Direction.LeftToRight;
-
-  /**
-   * A convenience alias of the `RightToLeft` [[Direction]].
-   */
-  export
-  const RightToLeft = Direction.RightToLeft;
-
-  /**
-   * A convenience alias of the `TopToBottom` [[Direction]].
-   */
-  export
-  const TopToBottom = Direction.TopToBottom;
-
-  /**
-   * A convenience alias of the `BottomToTop` [[Direction]].
-   */
-  export
-  const BottomToTop = Direction.BottomToTop;
-
   /**
    * Get the box panel stretch factor for the given widget.
    *
@@ -563,17 +550,17 @@ class BoxLayout extends PanelLayout {
 
     // Distribute the layout space and adjust the start position.
     switch (this._direction) {
-    case Direction.LeftToRight:
+    case 'left-to-right':
       boxCalc(this._sizers, Math.max(0, width - this._fixed));
       break;
-    case Direction.TopToBottom:
+    case 'top-to-bottom':
       boxCalc(this._sizers, Math.max(0, height - this._fixed));
       break;
-    case Direction.RightToLeft:
+    case 'right-to-left':
       boxCalc(this._sizers, Math.max(0, width - this._fixed));
       left += width;
       break;
-    case Direction.BottomToTop:
+    case 'bottom-to-top':
       boxCalc(this._sizers, Math.max(0, height - this._fixed));
       top += height;
       break;
@@ -587,19 +574,19 @@ class BoxLayout extends PanelLayout {
       }
       let size = this._sizers.at(i).size;
       switch (this._direction) {
-      case Direction.LeftToRight:
+      case 'left-to-right':
         setGeometry(widget, left, top, size, height);
         left += size + this._spacing;
         break;
-      case Direction.TopToBottom:
+      case 'top-to-bottom':
         setGeometry(widget, left, top, width, size);
         top += size + this._spacing;
         break;
-      case Direction.RightToLeft:
+      case 'right-to-left':
         setGeometry(widget, left - size, top, size, height);
         left -= size + this._spacing;
         break;
-      case Direction.BottomToTop:
+      case 'bottom-to-top':
         setGeometry(widget, left, top - size, width, size);
         top -= size + this._spacing;
         break;
@@ -612,7 +599,7 @@ class BoxLayout extends PanelLayout {
   private _dirty = false;
   private _box: IBoxSizing = null;
   private _sizers = new Vector<BoxSizer>();
-  private _direction = Direction.TopToBottom;
+  private _direction: Direction = 'top-to-bottom';
 }
 
 
@@ -621,30 +608,6 @@ class BoxLayout extends PanelLayout {
  */
 export
 namespace BoxLayout {
-  /**
-   * A convenience alias of the `LeftToRight` [[Direction]].
-   */
-  export
-  const LeftToRight = Direction.LeftToRight;
-
-  /**
-   * A convenience alias of the `RightToLeft` [[Direction]].
-   */
-  export
-  const RightToLeft = Direction.RightToLeft;
-
-  /**
-   * A convenience alias of the `TopToBottom` [[Direction]].
-   */
-  export
-  const TopToBottom = Direction.TopToBottom;
-
-  /**
-   * A convenience alias of the `BottomToTop` [[Direction]].
-   */
-  export
-  const BottomToTop = Direction.BottomToTop;
-
   /**
    * Get the box layout stretch factor for the given widget.
    *
@@ -732,7 +695,7 @@ namespace Private {
    */
   export
   function isHorizontal(dir: Direction): boolean {
-    return dir === Direction.LeftToRight || dir === Direction.RightToLeft;
+    return dir === 'left-to-right' || dir === 'right-to-left';
   }
 
   /**
@@ -740,10 +703,10 @@ namespace Private {
    */
   export
   function toggleDirection(widget: Widget, dir: Direction): void {
-    widget.toggleClass(LEFT_TO_RIGHT_CLASS, dir === Direction.LeftToRight);
-    widget.toggleClass(RIGHT_TO_LEFT_CLASS, dir === Direction.RightToLeft);
-    widget.toggleClass(TOP_TO_BOTTOM_CLASS, dir === Direction.TopToBottom);
-    widget.toggleClass(BOTTOM_TO_TOP_CLASS, dir === Direction.BottomToTop);
+    widget.toggleClass(LEFT_TO_RIGHT_CLASS, dir === 'left-to-right');
+    widget.toggleClass(RIGHT_TO_LEFT_CLASS, dir === 'right-to-left');
+    widget.toggleClass(TOP_TO_BOTTOM_CLASS, dir === 'top-to-bottom');
+    widget.toggleClass(BOTTOM_TO_TOP_CLASS, dir === 'bottom-to-top');
   }
 
   /**

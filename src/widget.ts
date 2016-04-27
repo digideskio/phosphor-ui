@@ -80,6 +80,7 @@ class Widget implements IDisposable, IMessageHandler {
    * less common, but is useful when wrapping foreign nodes as widgets.
    */
   constructor(node?: HTMLElement) {
+    // TODO still not sure if we should accept a node here?
     this._node = node || (this.constructor as typeof Widget).createNode();
     this.addClass(WIDGET_CLASS);
   }

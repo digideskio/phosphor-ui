@@ -109,7 +109,7 @@ class TabPanel extends Widget {
 
     // Setup the box layout.
     let layout = new BoxLayout();
-    layout.direction = BoxLayout.TopToBottom;
+    layout.direction = 'top-to-bottom';
     layout.spacing = 0;
 
     // Set the stretch factors for the child widgets.
