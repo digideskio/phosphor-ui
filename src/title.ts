@@ -16,7 +16,7 @@ import {
 export
 interface ITitleOptions {
   /**
-   * The object which owns the title, if any.
+   * The object which owns the title.
    */
   owner?: any;
 
@@ -62,7 +62,10 @@ class Title {
    *
    * @param options - The options for initializing the title.
    */
-  constructor(options: ITitleOptions = {}) {
+  constructor(options?: ITitleOptions) {
+    if (options === void 0) {
+      return;
+    }
     if (options.owner !== void 0) {
       this._owner = options.owner;
     }
