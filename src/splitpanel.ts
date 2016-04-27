@@ -101,6 +101,27 @@ type Orientation = 'horizontal' | 'vertical';
 
 
 /**
+ * An options object for initializing a split panel.
+ */
+export
+interface ISplitPanelOptions {
+  /**
+   * The layout orientation of the panel.
+   *
+   * The default is `'horizontal'`.
+   */
+  orientation?: Orientation;
+
+  /**
+   * The spacing between items in the panel.
+   *
+   * The default is `3`.
+   */
+  spacing?: number;
+}
+
+
+/**
  * A panel which arranges its widgets into resizable sections.
  *
  * #### Notes
@@ -129,10 +150,18 @@ class SplitPanel extends Panel {
 
   /**
    * Construct a new split panel.
+   *
+   * @param options - The options for initializing the split panel.
    */
-  constructor() {
+  constructor(options: ISplitPanelOptions = {}) {
     super();
     this.addClass(SPLIT_PANEL_CLASS);
+    if (options.orientation !== void 0) {
+      this.orientation = options.orientation;
+    }
+    if (options.spacing !== void 0) {
+      this.spacing = options.spacing;
+    }
   }
 
   /**
