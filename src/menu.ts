@@ -137,7 +137,7 @@ type MenuItemType = 'normal' | 'check' | 'radio' | 'submenu' | 'separator';
 
 
 /**
- * A type alias for a object which can be converted to an array.
+ * A type alias for a object which can be converted to a menu.
  */
 export
 type MenuTemplate = IterableOrArrayLike<MenuItem | IMenuItemOptions>;
@@ -617,7 +617,8 @@ class Menu extends Widget {
    * hierarchy using the default `Menu` and `MenuItem` constructors.
    *
    * If custom menus or menu items are required, this method should
-   * be used, and the custom objects should be instantiated directly.
+   * not be used. Instead, the custom objects should be instantiated
+   * and assembled manually.
    */
   static fromTemplate(template: MenuTemplate): Menu {
     return Private.asMenu(template);
@@ -822,6 +823,10 @@ class Menu extends Widget {
    *
    * @param item - The menu item to add to the menu, or an options
    *   object to be converted into a menu item.
+   *
+   * #### Notes
+   * Menu item options will be converted into a menu item using the
+   * default `MenuItem` constructor.
    */
   addItem(item: MenuItem | IMenuOptions): void {
     this.insertItem(this._items.length, item);
@@ -837,6 +842,9 @@ class Menu extends Widget {
    *
    * #### Notes
    * The index will be clamped to the bounds of the items.
+   *
+   * Menu item options will be converted into a menu item using the
+   * default `MenuItem` constructor.
    */
   insertItem(index: number, item: MenuItem | IMenuOptions): void {
     // Close the menu if it's attached.
@@ -1216,7 +1224,6 @@ class Menu extends Widget {
     // `Enter`
     // Trigger or open the active item.
     if (kc === 13) {
-      // Kill the event entirely.
       event.stopPropagation();
       event.preventDefault();
 
@@ -1243,59 +1250,41 @@ class Menu extends Widget {
       if (this._childMenu) {
         Private.activateFirstSelectable(this._childMenu);
       }
-
-      // Done.
       return;
     }
 
     // `Escape`
     // Close this menu.
     if (kc === 27) {
-      // Kill the event entirely.
       event.stopPropagation();
       event.preventDefault();
-
-      // Close this menu only.
       this.close();
-
-      // Done.
       return;
     }
 
     // `Left Arrow`
     // Close this menu if it's a submenu.
     if (kc === 37) {
-      // Kill the event entirely.
       event.stopPropagation();
       event.preventDefault();
-
-      // Close this menu if it's a leaf.
       if (this._parentMenu) {
         this.close();
       }
-
-      // Done.
       return;
     }
 
     // `Up Arrow`
     // Activate the previous item.
     if (kc === 38) {
-      // Kill the event entirely.
       event.stopPropagation();
       event.preventDefault();
-
-      // Activate the previous selectable item.
       Private.activatePrevSelectable(this);
-
-      // Done.
       return;
     }
 
     // `Right Arrow`
     // Open the active item if it's a submenu.
     if (kc === 39) {
-      // Kill the event entirely.
       event.stopPropagation();
       event.preventDefault();
 
@@ -1316,22 +1305,15 @@ class Menu extends Widget {
       if (this._childMenu) {
         Private.activateFirstSelectable(this._childMenu);
       }
-
-      // Done.
       return;
     }
 
     // `Down Arrow`
     // Activate the next item.
     if (kc === 40) {
-      // Kill the event entirely.
       event.stopPropagation();
       event.preventDefault();
-
-      // Activate the next selectable item.
       Private.activateNextSelectable(this);
-
-      // Done.
       return;
     }
   }
@@ -1347,12 +1329,8 @@ class Menu extends Widget {
     if (this._childMenu) {
       return;
     }
-
-    // Kill the event entirely.
     event.preventDefault();
     event.stopPropagation();
-
-    // Activate the next mnemonic item.
     Private.activateNextMnemonic(this, String.fromCharCode(event.charCode));
   }
 
