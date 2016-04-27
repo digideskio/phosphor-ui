@@ -709,16 +709,6 @@ class Menu extends Widget {
   }
 
   /**
-   * A read-only sequence of the menu items in the menu.
-   *
-   * #### Notes
-   * This is a read-only property.
-   */
-  get items(): ISequence<MenuItem> {
-    return this._items;
-  }
-
-  /**
    * A read-only sequence of the menu item nodes in the menu.
    *
    * #### Notes
@@ -726,27 +716,6 @@ class Menu extends Widget {
    */
   get itemNodes(): ISequence<HTMLElement> {
     return this._nodes;
-  }
-
-  /**
-   * Get the currently active menu item.
-   *
-   * #### Notes
-   * This will be `null` if no menu item is active.
-   */
-  get activeItem(): MenuItem {
-    let i = this._activeIndex;
-    return i !== -1 ? this._items.at(i) : null;
-  }
-
-  /**
-   * Set the currently active menu item.
-   *
-   * #### Notes
-   * If the item does not exist, the menu item will be set to `null`.
-   */
-  set activeItem(value: MenuItem) {
-    this.activeIndex = indexOf(this._items, value);
   }
 
   /**
@@ -768,6 +737,37 @@ class Menu extends Widget {
    */
   set activeItemNode(value: HTMLElement) {
     this.activeIndex = indexOf(this._nodes, value);
+  }
+
+  /**
+   * A read-only sequence of the menu items in the menu.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get items(): ISequence<MenuItem> {
+    return this._items;
+  }
+
+  /**
+   * Get the currently active menu item.
+   *
+   * #### Notes
+   * This will be `null` if no menu item is active.
+   */
+  get activeItem(): MenuItem {
+    let i = this._activeIndex;
+    return i !== -1 ? this._items.at(i) : null;
+  }
+
+  /**
+   * Set the currently active menu item.
+   *
+   * #### Notes
+   * If the item does not exist, the menu item will be set to `null`.
+   */
+  set activeItem(value: MenuItem) {
+    this.activeIndex = indexOf(this._items, value);
   }
 
   /**
