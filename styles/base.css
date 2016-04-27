@@ -19,8 +19,8 @@ body.p-mod-override-cursor * {
 | widget
 |----------------------------------------------------------------------------*/
 .p-Widget {
-  box-sizing: border-box;
-  position: relative;
+  box-sizing: border-box; /* TODO - remove this as a default? */
+  position: relative; /* TODO - remove this as a default? */
   overflow: hidden; /* TODO - remove this as a default? */
   cursor: default; /* TODO - remove this as a default? */
 }

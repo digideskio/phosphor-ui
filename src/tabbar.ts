@@ -271,6 +271,94 @@ interface ITabRenderer {
 
 
 /**
+ * A concrete implementation of [[ITabRenderer]].
+ *
+ * #### Notes
+ * This is the default tab renderer type for a [[TabBar]].
+ */
+export
+class TabRenderer implements ITabRenderer {
+  /**
+   * Create a node for a tab.
+   *
+   * @returns A new node for a tab.
+   */
+  createTabNode(): HTMLElement {
+    let node = document.createElement('li');
+    let icon = document.createElement('span');
+    let text = document.createElement('span');
+    let close = document.createElement('span');
+    node.className = TAB_CLASS;
+    icon.className = ICON_CLASS;
+    text.className = TEXT_CLASS;
+    close.className = CLOSE_ICON_CLASS;
+    node.appendChild(icon);
+    node.appendChild(text);
+    node.appendChild(close);
+    return node;
+  }
+
+  /**
+   * Update a tab node to reflect the state of a title.
+   *
+   * @param node - A tab node created by a call to `createTabNode`.
+   *
+   * @param title - The title object holding the data for the tab.
+   */
+  updateTabNode(node: HTMLElement, title: Title): void {
+    let tabInfix = title.className ? ` ${title.className}` : '';
+    let tabSuffix = title.closable ? ` ${CLOSABLE_CLASS}` : '';
+    let iconSuffix = title.icon ? ` ${title.icon}` : '';
+    let icon = node.firstChild as HTMLElement;
+    let text = icon.nextSibling as HTMLElement;
+    node.className = `${TAB_CLASS} ${tabInfix} ${tabSuffix}`;
+    icon.className = `${ICON_CLASS} ${iconSuffix}`;
+    text.textContent = title.text;
+    text.title = title.tooltip;
+  }
+
+  /**
+   * Look up the close icon descendant node for a tab node.
+   *
+   * @param node - A tab node created by a call to `createTabNode`.
+   *
+   * @returns The close icon descendant node, or `null` if none exists.
+   */
+  closeIconNode(node: HTMLElement): HTMLElement {
+    return node.lastChild as HTMLElement;
+  }
+}
+
+
+/**
+ * The namespace for the `TabRenderer` class statics.
+ */
+export
+namespace TabRenderer {
+  /**
+   * A singleton instance of the `TabRenderer` class.
+   *
+   * #### Notes
+   * This is default tab renderer instance used by `TabBar`.
+   */
+  export
+  const instance = new TabRenderer();
+}
+
+
+/**
+ * An options object for creating a tab bar.
+ */
+export
+interface ITabBarOptions {
+  /**
+   * A custom renderer for creating new tab nodes.
+   */
+  renderer?: ITabRenderer;
+}
+
+
+/**
  * A widget which displays titles as a row of tabs.
  */
 export
@@ -298,13 +386,13 @@ class TabBar extends Widget {
   /**
    * Construct a new tab bar.
    *
-   * @param renderer - The tab renderer for creating new tab nodes.
+   * @param options - The options for initializing the tab bar.
    */
-  constructor(renderer: ITabRenderer = TabRenderer.instance) {
+  constructor(options: ITabBarOptions = {}) {
     super();
-    this._renderer = renderer;
     this.addClass(TAB_BAR_CLASS);
     this.setFlag(WidgetFlag.DisallowLayout);
+    this._renderer = options.renderer || TabRenderer.instance;
   }
 
   /**
@@ -415,12 +503,12 @@ class TabBar extends Widget {
   }
 
   /**
-   * A read-only sequence of the tabs in the tab bar.
+   * A read-only sequence of the tab nodes in the tab bar.
    *
    * #### Notes
    * This is a read-only property.
    */
-  get tabs(): ISequence<HTMLElement> {
+  get tabNodes(): ISequence<HTMLElement> {
     return this._tabs;
   }
 
@@ -460,7 +548,7 @@ class TabBar extends Widget {
    * #### Notes
    * This will be `null` if no tab is selected.
    */
-  get currentTab(): HTMLElement {
+  get currentTabNode(): HTMLElement {
     let i = this._currentIndex;
     return i !== -1 ? this._tabs.at(i) : null;
   }
@@ -471,7 +559,7 @@ class TabBar extends Widget {
    * #### Notes
    * If the tab does not exist, the tab will be set to `null`.
    */
-  set currentTab(value: HTMLElement) {
+  set currentTabNode(value: HTMLElement) {
     this.currentIndex = indexOf(this._tabs, value);
   }
 
@@ -698,6 +786,52 @@ class TabBar extends Widget {
 
     // Schedule an update of the tabs.
     this.update();
+  }
+
+  /**
+   * Remove all tabs from the tab bar.
+   */
+  clearTabs(): void {
+    // Bail if there is nothing to remove.
+    if (this._titles.length === 0) {
+      return;
+    }
+
+    // Release the mouse before making any changes.
+    this._releaseMouse();
+
+    // Disconnect from the title changed signals.
+    each(this._titles, title => {
+      title.changed.disconnect(this._onTitleChanged, this);
+    });
+
+    // Get the current index and title.
+    let pi = this.currentIndex;
+    let pt = this.currentTitle;
+
+    // Reset the current index.
+    this._currentIndex = -1;
+
+    // Clear the tab and title vectors.
+    this._tabs.clear();
+    this._titles.clear();
+
+    // Clear the dirty title set.
+    this._dirtyTitles.clear();
+
+    // Clear the content node.
+    this.contentNode.textContent = '';
+
+    // If no tab was selected, there's nothing else to do.
+    if (pi === -1) {
+      return;
+    }
+
+    // Emit the current changed signal.
+    this.currentChanged.emit({
+      previousIndex: pi, previousTitle: pt,
+      currentIndex: -1, currentTitle: null
+    });
   }
 
   /**
@@ -1111,82 +1245,6 @@ defineSignal(TabBar.prototype, 'currentChanged');
 defineSignal(TabBar.prototype, 'tabMoved');
 defineSignal(TabBar.prototype, 'tabCloseRequested');
 defineSignal(TabBar.prototype, 'tabDetachRequested');
-
-
-/**
- * A concrete implementation of [[ITabRenderer]].
- *
- * #### Notes
- * This is the default tab renderer type for a `TabBar`.
- */
-export
-class TabRenderer implements ITabRenderer {
-  /**
-   * Create a node for a tab.
-   *
-   * @returns A new node for a tab.
-   */
-  createTabNode(): HTMLElement {
-    let node = document.createElement('li');
-    let icon = document.createElement('span');
-    let text = document.createElement('span');
-    let close = document.createElement('span');
-    node.className = TAB_CLASS;
-    icon.className = ICON_CLASS;
-    text.className = TEXT_CLASS;
-    close.className = CLOSE_ICON_CLASS;
-    node.appendChild(icon);
-    node.appendChild(text);
-    node.appendChild(close);
-    return node;
-  }
-
-  /**
-   * Update a tab node to reflect the state of a title.
-   *
-   * @param node - A tab node created by a call to `createTabNode`.
-   *
-   * @param title - The title object holding the data for the tab.
-   */
-  updateTabNode(node: HTMLElement, title: Title): void {
-    let tabInfix = title.className ? ` ${title.className}` : '';
-    let tabSuffix = title.closable ? ` ${CLOSABLE_CLASS}` : '';
-    let iconSuffix = title.icon ? ` ${title.icon}` : '';
-    let icon = node.firstChild as HTMLElement;
-    let text = icon.nextSibling as HTMLElement;
-    node.className = `${TAB_CLASS} ${tabInfix} ${tabSuffix}`;
-    icon.className = `${ICON_CLASS} ${iconSuffix}`;
-    text.textContent = title.text;
-    text.title = title.tooltip;
-  }
-
-  /**
-   * Look up the close icon descendant node for a tab node.
-   *
-   * @param node - A tab node created by a call to `createTabNode`.
-   *
-   * @returns The close icon descendant node, or `null` if none exists.
-   */
-  closeIconNode(node: HTMLElement): HTMLElement {
-    return node.lastChild as HTMLElement;
-  }
-}
-
-
-/**
- * The namespace for the `TabRenderer` class statics.
- */
-export
-namespace TabRenderer {
-  /**
-   * A singleton instance of the `TabRenderer` class.
-   *
-   * #### Notes
-   * This is default tab factory instance used by `TabBar`.
-   */
-  export
-  const instance = new TabRenderer();
-}
 
 
 /**
