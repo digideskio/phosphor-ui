@@ -123,12 +123,9 @@ class BoxPanel extends Panel {
    *
    * @param options - The options for initializing the box panel.
    */
-  constructor(options?: IBoxPanelOptions) {
+  constructor(options: IBoxPanelOptions = {}) {
     super();
     this.addClass(BOX_PANEL_CLASS);
-    if (options === void 0) {
-      return;
-    }
     if (options.direction !== void 0) {
       this.direction = options.direction;
     }
