@@ -83,6 +83,27 @@ type Direction = (
 
 
 /**
+ * An options object for initializing a box panel.
+ */
+export
+interface IBoxPanelOptions {
+  /**
+   * The layout direction of the panel.
+   *
+   * The default is `'top-to-bottom'`.
+   */
+  direction?: Direction;
+
+  /**
+   * The spacing between items in the panel.
+   *
+   * The default is `8`.
+   */
+  spacing?: number;
+}
+
+
+/**
  * A panel which arranges its widgets in a single row or column.
  *
  * #### Notes
@@ -99,10 +120,21 @@ class BoxPanel extends Panel {
 
   /**
    * Construct a new box panel.
+   *
+   * @param options - The options for initializing the box panel.
    */
-  constructor() {
+  constructor(options?: IBoxPanelOptions) {
     super();
     this.addClass(BOX_PANEL_CLASS);
+    if (options === void 0) {
+      return;
+    }
+    if (options.direction !== void 0) {
+      this.direction = options.direction;
+    }
+    if (options.spacing !== void 0) {
+      this.spacing = options.spacing;
+    }
   }
 
   /**
