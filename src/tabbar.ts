@@ -22,7 +22,7 @@ import {
 } from 'phosphor-core/lib/mutation';
 
 import {
-  indexOf, findIndex
+  findIndex, indexOf
 } from 'phosphor-core/lib/searching';
 
 import {

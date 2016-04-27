@@ -14,7 +14,7 @@ import {
 } from 'phosphor-core/lib/messaging';
 
 import {
-  indexOf, findIndex
+  findIndex, indexOf
 } from 'phosphor-core/lib/searching';
 
 import {
