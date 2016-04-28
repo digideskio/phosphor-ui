@@ -405,6 +405,26 @@ class Widget implements IDisposable, IMessageHandler {
   }
 
   /**
+   * Send a `'focus-request'` message to the widget.
+   *
+   * #### Notes
+   * This is a simple convenience method for sending the message.
+   */
+  focus(): void {
+    sendMessage(this, WidgetMessage.FocusRequest);
+  }
+
+  /**
+   * Send a `'blur-request'` message to the widget.
+   *
+   * #### Notes
+   * This is a simple convenience method for sending the message.
+   */
+  blur(): void {
+    sendMessage(this, WidgetMessage.BlurRequest);
+  }
+
+  /**
    * Send a `'close-request'` message to the widget.
    *
    * #### Notes
@@ -545,6 +565,14 @@ class Widget implements IDisposable, IMessageHandler {
       this.clearFlag(WidgetFlag.IsVisible);
       this.clearFlag(WidgetFlag.IsAttached);
       break;
+    case 'focus-request':
+      this.notifyLayout(msg);
+      this.onFocusRequest(msg);
+      break;
+    case 'blur-request':
+      this.notifyLayout(msg);
+      this.onBlurRequest(msg);
+      break;
     case 'close-request':
       this.notifyLayout(msg);
       this.onCloseRequest(msg);
@@ -575,6 +603,26 @@ class Widget implements IDisposable, IMessageHandler {
    */
   protected notifyLayout(msg: Message): void {
     if (this._layout) this._layout.processParentMessage(msg);
+  }
+
+  /**
+   * A message handler invoked on a `'focus-request'` message.
+   *
+   * #### Notes
+   * The default implementation focuses the widget's node.
+   */
+  protected onFocusRequest(msg: Message): void {
+    this.node.focus();
+  }
+
+  /**
+   * A message handler invoked on a `'blur-request'` message.
+   *
+   * #### Notes
+   * The default implementation blurs the widget's node.
+   */
+  protected onBlurRequest(msg: Message): void {
+    this.node.blur();
   }
 
   /**
@@ -1115,6 +1163,26 @@ namespace WidgetMessage {
    */
   export
   const FitRequest = new ConflatableMessage('fit-request');
+
+  /**
+   * A singleton conflatable `'focus-request'` message.
+   *
+   * #### Notes
+   * This message should be dispatched to a widget when it should
+   * set input focus to its node or focus delegate.
+   */
+  export
+  const FocusRequest = new ConflatableMessage('focus-request');
+
+  /**
+   * A singleton conflatable `'blur-request'` message.
+   *
+   * #### Notes
+   * This message should be dispatched to a widget when it should
+   * remove input focus from its node or focus delegate.
+   */
+  export
+  const BlurRequest = new ConflatableMessage('blur-request');
 
   /**
    * A singleton conflatable `'close-request'` message.
