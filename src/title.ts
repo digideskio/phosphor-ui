@@ -11,43 +11,6 @@ import {
 
 
 /**
- * An options object for initializing a title.
- */
-export
-interface ITitleOptions {
-  /**
-   * The object which owns the title.
-   */
-  owner?: any;
-
-  /**
-   * The text for the title.
-   */
-  text?: string;
-
-  /**
-   * The icon class for the title.
-   */
-  icon?: string;
-
-  /**
-   * The tooltip for the title.
-   */
-  tooltip?: string;
-
-  /**
-   * The extra class name for the title.
-   */
-  className?: string;
-
-  /**
-   * The closable state for the title.
-   */
-  closable?: boolean;
-}
-
-
-/**
  * An object which holds data related to a widget's title.
  *
  * #### Notes
@@ -62,7 +25,7 @@ class Title {
    *
    * @param options - The options for initializing the title.
    */
-  constructor(options?: ITitleOptions) {
+  constructor(options?: Title.IOptions) {
     if (options === void 0) {
       return;
     }
@@ -228,3 +191,46 @@ class Title {
 
 // Define the signals for the `Title` class.
 defineSignal(Title.prototype, 'changed');
+
+
+/**
+ * The namespace for the `Title` class statics.
+ */
+export
+namespace Title {
+  /**
+   * An options object for initializing a title.
+   */
+  export
+  interface IOptions {
+    /**
+     * The object which owns the title.
+     */
+    owner?: any;
+
+    /**
+     * The text for the title.
+     */
+    text?: string;
+
+    /**
+     * The icon class for the title.
+     */
+    icon?: string;
+
+    /**
+     * The tooltip for the title.
+     */
+    tooltip?: string;
+
+    /**
+     * The extra class name for the title.
+     */
+    className?: string;
+
+    /**
+     * The closable state for the title.
+     */
+    closable?: boolean;
+  }
+}

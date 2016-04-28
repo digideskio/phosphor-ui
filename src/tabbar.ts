@@ -50,7 +50,7 @@ import {
 } from './title';
 
 import {
-  Widget, WidgetFlag
+  Widget
 } from './widget';
 
 
@@ -131,234 +131,6 @@ const TRANSITION_DURATION = 150;  // Keep in sync with CSS.
 
 
 /**
- * The arguments object for the `currentChanged` signal.
- */
-export
-interface ICurrentChangedArgs {
-  /**
-   * The previously selected index.
-   */
-  previousIndex: number;
-
-  /**
-   * The previously selected title.
-   */
-  previousTitle: Title;
-
-  /**
-   * The currently selected index.
-   */
-  currentIndex: number;
-
-  /**
-   * The currently selected title.
-   */
-  currentTitle: Title;
-}
-
-
-/**
- * The arguments object for the `tabMoved` signal.
- */
-export
-interface ITabMovedArgs {
-  /**
-   * The previous index of the tab.
-   */
-  fromIndex: number;
-
-  /**
-   * The current index of the tab.
-   */
-  toIndex: number;
-
-  /**
-   * The title for the tab.
-   */
-  title: Title;
-}
-
-
-/**
- * The arguments object for the `tabCloseRequested` signal.
- */
-export
-interface ITabCloseArgs {
-  /**
-   * The index of the tab to close.
-   */
-  index: number;
-
-  /**
-   * The title for the tab.
-   */
-  title: Title;
-}
-
-
-/**
- * The arguments object for the `tabDetachRequested` signal.
- */
-export
-interface ITabDetachArgs {
-  /**
-   * The index of the tab to detach.
-   */
-  index: number;
-
-  /**
-   * The title for the tab.
-   */
-  title: Title;
-
-  /**
-   * The current client X position of the mouse.
-   */
-  clientX: number;
-
-  /**
-   * The current client Y position of the mouse.
-   */
-  clientY: number;
-}
-
-
-/**
- * An object which renders tab nodes for a tab bar.
- *
- * #### Notes
- * User code can implement a custom tab renderer when the default
- * tab nodes created by the tab bar are insufficient.
- */
-export
-interface ITabRenderer {
-  /**
-   * Create a node for a tab.
-   *
-   * @returns A new node for a tab.
-   *
-   * #### Notes
-   * The data in the node should be uninitialized. The `updateTabNode`
-   * method will be called to initialize the data for the tab node.
-   */
-  createTabNode(): HTMLElement;
-
-  /**
-   * Update a tab node to reflect the state of a title.
-   *
-   * @param node - A tab node created by a call to `createTabNode`.
-   *
-   * @param title - The title object holding the data for the tab.
-   *
-   * #### Notes
-   * This method should completely reset the state of the node to
-   * reflect the data in the title.
-   */
-  updateTabNode(node: HTMLElement, title: Title): void;
-
-  /**
-   * Look up the close icon descendant node for a tab node.
-   *
-   * @param node - A tab node created by a call to `createTabNode`.
-   *
-   * @returns The close icon descendant node, or `null` if none exists.
-   *
-   * #### Notes
-   * This is used by the tab bar to detect clicks on the close icon.
-   */
-  closeIconNode(node: HTMLElement): HTMLElement;
-}
-
-
-/**
- * A concrete implementation of [[ITabRenderer]].
- *
- * #### Notes
- * This is the default tab renderer type for a [[TabBar]].
- */
-export
-class TabRenderer implements ITabRenderer {
-  /**
-   * Create a node for a tab.
-   *
-   * @returns A new node for a tab.
-   */
-  createTabNode(): HTMLElement {
-    let node = document.createElement('li');
-    let icon = document.createElement('span');
-    let text = document.createElement('span');
-    let close = document.createElement('span');
-    node.className = TAB_CLASS;
-    icon.className = ICON_CLASS;
-    text.className = TEXT_CLASS;
-    close.className = CLOSE_ICON_CLASS;
-    node.appendChild(icon);
-    node.appendChild(text);
-    node.appendChild(close);
-    return node;
-  }
-
-  /**
-   * Update a tab node to reflect the state of a title.
-   *
-   * @param node - A tab node created by a call to `createTabNode`.
-   *
-   * @param title - The title object holding the data for the tab.
-   */
-  updateTabNode(node: HTMLElement, title: Title): void {
-    let tabInfix = title.className ? ` ${title.className}` : '';
-    let tabSuffix = title.closable ? ` ${CLOSABLE_CLASS}` : '';
-    let iconSuffix = title.icon ? ` ${title.icon}` : '';
-    let icon = node.firstChild as HTMLElement;
-    let text = icon.nextSibling as HTMLElement;
-    node.className = `${TAB_CLASS} ${tabInfix} ${tabSuffix}`;
-    icon.className = `${ICON_CLASS} ${iconSuffix}`;
-    text.textContent = title.text;
-    text.title = title.tooltip;
-  }
-
-  /**
-   * Look up the close icon descendant node for a tab node.
-   *
-   * @param node - A tab node created by a call to `createTabNode`.
-   *
-   * @returns The close icon descendant node, or `null` if none exists.
-   */
-  closeIconNode(node: HTMLElement): HTMLElement {
-    return node.lastChild as HTMLElement;
-  }
-}
-
-
-/**
- * The namespace for the `TabRenderer` class statics.
- */
-export
-namespace TabRenderer {
-  /**
-   * A singleton instance of the `TabRenderer` class.
-   *
-   * #### Notes
-   * This is default tab renderer instance used by `TabBar`.
-   */
-  export
-  const instance = new TabRenderer();
-}
-
-
-/**
- * An options object for creating a tab bar.
- */
-export
-interface ITabBarOptions {
-  /**
-   * A custom renderer for creating new tab nodes.
-   */
-  renderer?: ITabRenderer;
-}
-
-
-/**
  * A widget which displays titles as a row of tabs.
  */
 export
@@ -388,11 +160,11 @@ class TabBar extends Widget {
    *
    * @param options - The options for initializing the tab bar.
    */
-  constructor(options: ITabBarOptions = {}) {
+  constructor(options: TabBar.IOptions = {}) {
     super();
     this.addClass(TAB_BAR_CLASS);
-    this.setFlag(WidgetFlag.DisallowLayout);
-    this._renderer = options.renderer || TabRenderer.instance;
+    this.setFlag(Widget.Flag.DisallowLayout);
+    this._renderer = options.renderer || TabBar.ContentRenderer.instance;
   }
 
   /**
@@ -418,7 +190,7 @@ class TabBar extends Widget {
    * tab changes due to tabs being inserted, removed, or moved. It is
    * only emitted when the actual current tab node is changed.
    */
-  currentChanged: ISignal<TabBar, ICurrentChangedArgs>;
+  currentChanged: ISignal<TabBar, TabBar.ICurrentChangedArgs>;
 
   /**
    * A signal emitted when a tab is moved by the user.
@@ -428,7 +200,7 @@ class TabBar extends Widget {
    *
    * This signal is not emitted when a tab is moved programmatically.
    */
-  tabMoved: ISignal<TabBar, ITabMovedArgs>;
+  tabMoved: ISignal<TabBar, TabBar.ITabMovedArgs>;
 
   /**
    * A signal emitted when a tab close icon is clicked.
@@ -436,7 +208,7 @@ class TabBar extends Widget {
    * #### Notes
    * This signal is not emitted unless the tab title is `closable`.
    */
-  tabCloseRequested: ISignal<TabBar, ITabCloseArgs>;
+  tabCloseRequested: ISignal<TabBar, TabBar.ITabCloseRequestedArgs>;
 
   /**
    * A signal emitted when a tab is dragged beyond the detach threshold.
@@ -450,7 +222,7 @@ class TabBar extends Widget {
    *
    * This signal is only emitted once per drag cycle.
    */
-  tabDetachRequested: ISignal<TabBar, ITabDetachArgs>;
+  tabDetachRequested: ISignal<TabBar, TabBar.ITabDetachRequestedArgs>;
 
   /**
    * Get the tab bar header node.
@@ -1232,11 +1004,11 @@ class TabBar extends Widget {
 
   private _currentIndex = -1;
   private _tabsMovable = false;
-  private _renderer: ITabRenderer;
   private _titles = new Vector<Title>();
   private _dirtyTitles= new Set<Title>();
   private _tabs = new Vector<HTMLElement>();
   private _dragData: Private.DragData = null;
+  private _renderer: TabBar.IContentRenderer;
 }
 
 
@@ -1245,6 +1017,228 @@ defineSignal(TabBar.prototype, 'currentChanged');
 defineSignal(TabBar.prototype, 'tabMoved');
 defineSignal(TabBar.prototype, 'tabCloseRequested');
 defineSignal(TabBar.prototype, 'tabDetachRequested');
+
+
+/**
+ * The namespace for the `TabBar` class statics.
+ */
+export
+namespace TabBar {
+  /**
+   * An options object for creating a tab bar.
+   */
+  export
+  interface IOptions {
+    /**
+     * A custom renderer for creating tab bar content.
+     */
+    renderer?: IContentRenderer;
+  }
+
+  /**
+   * The arguments object for the `currentChanged` signal.
+   */
+  export
+  interface ICurrentChangedArgs {
+    /**
+     * The previously selected index.
+     */
+    previousIndex: number;
+
+    /**
+     * The previously selected title.
+     */
+    previousTitle: Title;
+
+    /**
+     * The currently selected index.
+     */
+    currentIndex: number;
+
+    /**
+     * The currently selected title.
+     */
+    currentTitle: Title;
+  }
+
+  /**
+   * The arguments object for the `tabMoved` signal.
+   */
+  export
+  interface ITabMovedArgs {
+    /**
+     * The previous index of the tab.
+     */
+    fromIndex: number;
+
+    /**
+     * The current index of the tab.
+     */
+    toIndex: number;
+
+    /**
+     * The title for the tab.
+     */
+    title: Title;
+  }
+
+  /**
+   * The arguments object for the `tabCloseRequested` signal.
+   */
+  export
+  interface ITabCloseRequestedArgs {
+    /**
+     * The index of the tab to close.
+     */
+    index: number;
+
+    /**
+     * The title for the tab.
+     */
+    title: Title;
+  }
+
+  /**
+   * The arguments object for the `tabDetachRequested` signal.
+   */
+  export
+  interface ITabDetachRequestedArgs {
+    /**
+     * The index of the tab to detach.
+     */
+    index: number;
+
+    /**
+     * The title for the tab.
+     */
+    title: Title;
+
+    /**
+     * The current client X position of the mouse.
+     */
+    clientX: number;
+
+    /**
+     * The current client Y position of the mouse.
+     */
+    clientY: number;
+  }
+
+  /**
+   * An object which renders content for a tab bar.
+   *
+   * #### Notes
+   * User code can implement a custom renderer when the default
+   * content created by the tab bar is insufficient.
+   */
+  export
+  interface IContentRenderer {
+    /**
+     * Create a node for a tab.
+     *
+     * @returns A new node for a tab.
+     *
+     * #### Notes
+     * The data in the node should be uninitialized.
+     *
+     * The `updateTabNode` method will be called for initialization.
+     */
+    createTabNode(): HTMLElement;
+
+    /**
+     * Update a tab node to reflect the state of a title.
+     *
+     * @param node - A tab node created by a call to `createTabNode`.
+     *
+     * @param title - The title object holding the data for the tab.
+     *
+     * #### Notes
+     * This method should completely reset the state of the node to
+     * reflect the data in the title.
+     */
+    updateTabNode(node: HTMLElement, title: Title): void;
+
+    /**
+     * Look up the close icon descendant node for a tab node.
+     *
+     * @param node - A tab node created by a call to `createTabNode`.
+     *
+     * @returns The close icon node, or `null` if none exists.
+     *
+     * #### Notes
+     * This is used by the tab bar to detect clicks on the close icon.
+     */
+    closeIconNode(node: HTMLElement): HTMLElement;
+  }
+
+  /**
+   * The default concrete implementation of [[IContentRenderer]].
+   */
+  export
+  class ContentRenderer implements IContentRenderer {
+    /**
+     * Create a node for a tab.
+     *
+     * @returns A new node for a tab.
+     */
+    createTabNode(): HTMLElement {
+      let node = document.createElement('li');
+      let icon = document.createElement('span');
+      let text = document.createElement('span');
+      let close = document.createElement('span');
+      node.className = TAB_CLASS;
+      icon.className = ICON_CLASS;
+      text.className = TEXT_CLASS;
+      close.className = CLOSE_ICON_CLASS;
+      node.appendChild(icon);
+      node.appendChild(text);
+      node.appendChild(close);
+      return node;
+    }
+
+    /**
+     * Update a tab node to reflect the state of a title.
+     *
+     * @param node - A tab node created by a call to `createTabNode`.
+     *
+     * @param title - The title object holding the data for the tab.
+     */
+    updateTabNode(node: HTMLElement, title: Title): void {
+      let tabInfix = title.className ? ` ${title.className}` : '';
+      let tabSuffix = title.closable ? ` ${CLOSABLE_CLASS}` : '';
+      let iconSuffix = title.icon ? ` ${title.icon}` : '';
+      let icon = node.firstChild as HTMLElement;
+      let text = icon.nextSibling as HTMLElement;
+      node.className = `${TAB_CLASS} ${tabInfix} ${tabSuffix}`;
+      icon.className = `${ICON_CLASS} ${iconSuffix}`;
+      text.textContent = title.text;
+      text.title = title.tooltip;
+    }
+
+    /**
+     * Look up the close icon descendant node for a tab node.
+     *
+     * @param node - A tab node created by a call to `createTabNode`.
+     *
+     * @returns The close icon node, or `null` if none exists.
+     */
+    closeIconNode(node: HTMLElement): HTMLElement {
+      return node.lastChild as HTMLElement;
+    }
+  }
+
+  /**
+   * The namespace for the `ContentRenderer` class statics.
+   */
+  export
+  namespace ContentRenderer {
+    /**
+     * A default instance of the `ContentRenderer` class.
+     */
+    export
+    const instance = new ContentRenderer();
+  }
+}
 
 
 /**

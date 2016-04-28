@@ -34,7 +34,7 @@ import {
 } from './domutil';
 
 import {
-  Widget, WidgetFlag, WidgetMessage
+  Widget, WidgetMessage
 } from './widget';
 
 
@@ -130,82 +130,6 @@ const SUBMENU_OVERLAP = 3;
 
 
 /**
- * A type alias for the supported menu item types.
- */
-export
-type MenuItemType = 'normal' | 'check' | 'radio' | 'submenu' | 'separator';
-
-
-/**
- * A type alias for a object which can be converted to a menu.
- */
-export
-type MenuTemplate = IterableOrArrayLike<MenuItem | IMenuItemOptions>;
-
-
-/**
- * An options object for initializing a menu item.
- */
-export
-interface IMenuItemOptions {
-  /**
-   * The type of the menu item.
-   */
-  type?: MenuItemType;
-
-  /**
-   * The text for the menu item.
-   */
-  text?: string;
-
-  /**
-   * The icon class for the menu item.
-   */
-  icon?: string;
-
-  /**
-   * The keyboard shortcut decoration for the menu item.
-   */
-  shortcut?: string;
-
-  /**
-   * The checked state for the menu item.
-   */
-  checked?: boolean;
-
-  /**
-   * The disabled state for the menu item.
-   */
-  disabled?: boolean;
-
-  /**
-   * The hidden state for the menu item.
-   */
-  hidden?: boolean;
-
-  /**
-   * The extra class name for the menu item.
-   */
-  className?: string;
-
-  /**
-   * The command id for the menu item.
-   */
-  command?: string;
-
-  /**
-   * The command args for the menu item.
-   */
-  args?: any;
-
-  /**
-   * The submenu or submenu template for the menu item.
-   */
-  submenu?: Menu | MenuTemplate;
-}
-
-
-/**
  * An object which holds the data for an item in a menu.
  *
  * #### Notes
@@ -220,7 +144,7 @@ class MenuItem {
    *
    * @param options - The options for initializing the menu item.
    */
-  constructor(options?: IMenuItemOptions) {
+  constructor(options?: MenuItem.IOptions) {
     if (options === void 0) {
       return;
     }
@@ -267,7 +191,7 @@ class MenuItem {
    *
    * The default value is `'normal'`.
    */
-  type: MenuItemType = 'normal';
+  type: MenuItem.Type = 'normal';
 
   /**
    * The text for the menu item.
@@ -377,215 +301,76 @@ class MenuItem {
 
 
 /**
- * An object which renders item nodes for a menu.
- *
- * #### Notes
- * User code can implement a custom item renderer when the default
- * item nodes created by the menu are insufficient.
+ * The namespace for the `MenuItem` class statics.
  */
 export
-interface IMenuItemRenderer {
+namespace MenuItem {
   /**
-   * Create a node for a menu item.
-   *
-   * @returns A new node for a menu item.
-   *
-   * #### Notes
-   * The data in the node should be uninitialized. The `updateItemNode`
-   * method will be called to initialize the data for the item node.
-   */
-  createItemNode(): HTMLElement;
-
-  /**
-   * Update an item node to reflect the state of a menu item.
-   *
-   * @param node - An item node created by a call to `createItemNode`.
-   *
-   * @param item - The menu item holding the data for the node.
-   *
-   * #### Notes
-   * This method should completely reset the state of the node to
-   * reflect the data in the menu item.
-   */
-  updateItemNode(node: HTMLElement, item: MenuItem): void;
-}
-
-
-/**
- * A concrete implementation of [[IMenuItemRenderer]].
- *
- * #### Notes
- * This is the default item renderer type for a [[Menu]].
- */
-export
-class MenuItemRenderer implements IMenuItemRenderer {
-  /**
-   * Create a node for a menu item.
-   *
-   * @returns A new node for a menu item.
-   */
-  createItemNode(): HTMLElement {
-    let node = document.createElement('li');
-    let icon = document.createElement('span');
-    let text = document.createElement('span');
-    let shortcut = document.createElement('span');
-    let submenu = document.createElement('span');
-    node.className = ITEM_CLASS;
-    text.className = TEXT_CLASS;
-    shortcut.className = SHORTCUT_CLASS;
-    submenu.className = SUBMENU_CLASS;
-    node.appendChild(icon);
-    node.appendChild(text);
-    node.appendChild(shortcut);
-    node.appendChild(submenu);
-    return node;
-  }
-
-  /**
-   * Update an item node to reflect the state of a menu item.
-   *
-   * @param node - An item node created by a call to `createItemNode`.
-   *
-   * @param item - The menu item holding the data for the node.
-   */
-  updateItemNode(node: HTMLElement, item: MenuItem): void {
-    let sub = item.type === 'submenu';
-    let sep = item.type === 'separator';
-    let icon = node.firstChild as HTMLElement;
-    let text = icon.nextSibling as HTMLElement;
-    let shortcut = text.nextSibling as HTMLElement;
-    node.className = this.createItemClassName(item);
-    icon.className = this.createIconClassName(item);
-    text.textContent = sep ? '' : item.text.replace(/&&/g, '');
-    shortcut.textContent = (sep || sub) ? '' : item.shortcut;
-  }
-
-  /**
-   * Create the full class name for a menu item node.
-   *
-   * @param item - The menu item of interest.
-   *
-   * #### Notes
-   * This method will create the full class name for the item, taking
-   * into account its type and other relevant state based on the type.
-   */
-  createItemClassName(item: MenuItem): string {
-    let name = ITEM_CLASS;
-    switch (item.type) {
-    case 'normal':
-      name += ` ${NORMAL_TYPE_CLASS}`;
-      if (item.disabled) {
-        name += ` ${DISABLED_CLASS}`;
-      }
-      break;
-    case 'check':
-      name += ` ${CHECK_TYPE_CLASS}`;
-      if (item.checked) {
-        name += ` ${CHECKED_CLASS}`;
-      }
-      if (item.disabled) {
-        name += ` ${DISABLED_CLASS}`;
-      }
-      break;
-    case 'radio':
-      name += ` ${RADIO_TYPE_CLASS}`;
-      if (item.checked) {
-        name += ` ${CHECKED_CLASS}`;
-      }
-      if (item.disabled) {
-        name += ` ${DISABLED_CLASS}`;
-      }
-      break;
-    case 'submenu':
-      name += ` ${SUBMENU_TYPE_CLASS}`;
-      if (item.disabled) {
-        name += ` ${DISABLED_CLASS}`;
-      }
-      break;
-    case 'separator':
-      name += ` ${SEPARATOR_TYPE_CLASS}`;
-      break;
-    }
-    if (item.hidden) {
-      name += ` ${HIDDEN_CLASS}`;
-    }
-    if (item.className) {
-      name += ` ${item.className}`;
-    }
-    return name;
-  }
-
-  /**
-   * Create the full class name for a menu item icon node.
-   *
-   * @param item - The menu item of interest.
-   *
-   * #### Notes
-   * This method will create the class name for the item icon, taking
-   * into account its type and other relevant state based on the type.
-   */
-  createIconClassName(item: MenuItem): string {
-    let name = ICON_CLASS;
-    if (item.type !== 'separator' && item.icon) {
-      name += ` ${item.icon}`;
-    }
-    return name;
-  }
-}
-
-
-/**
- * The namespace for the `MenuItemRenderer` class statics.
- */
-export
-namespace MenuItemRenderer {
-  /**
-   * A singleton instance of the `MenuItemRenderer` class.
-   *
-   * #### Notes
-   * This is default item renderer instance used by `Menu`.
+   * A type alias for a menu item type.
    */
   export
-  const instance = new MenuItemRenderer();
-}
-
-
-/**
- * An options object for the `open` method on a [[Menu]].
- */
-export
-interface IOpenOptions {
-  /**
-   * Whether to force the X position of the menu.
-   *
-   * Setting to `true` will disable the logic which repositions the
-   * X coordinate of the menu if it will not fit entirely on screen.
-   *
-   * The default is `false`.
-   */
-  forceX?: boolean;
+  type Type = 'normal' | 'check' | 'radio' | 'submenu' | 'separator';
 
   /**
-   * Whether to force the Y position of the menu.
-   *
-   * Setting to `true` will disable the logic which repositions the
-   * Y coordinate of the menu if it will not fit entirely on screen.
-   *
-   * The default is `false`.
+   * An options object for initializing a menu item.
    */
-  forceY?: boolean;
-}
+  export
+  interface IOptions {
+    /**
+     * The type of the menu item.
+     */
+    type?: Type;
 
+    /**
+     * The text for the menu item.
+     */
+    text?: string;
 
-/**
- * An options object for creating a menu.
- */
-export
-interface IMenuOptions {
-  /**
-   * A custom renderer for creating new menu item nodes.
-   */
-  renderer?: IMenuItemRenderer;
+    /**
+     * The icon class for the menu item.
+     */
+    icon?: string;
+
+    /**
+     * The keyboard shortcut decoration for the menu item.
+     */
+    shortcut?: string;
+
+    /**
+     * The checked state for the menu item.
+     */
+    checked?: boolean;
+
+    /**
+     * The disabled state for the menu item.
+     */
+    disabled?: boolean;
+
+    /**
+     * The hidden state for the menu item.
+     */
+    hidden?: boolean;
+
+    /**
+     * The extra class name for the menu item.
+     */
+    className?: string;
+
+    /**
+     * The command id for the menu item.
+     */
+    command?: string;
+
+    /**
+     * The command args for the menu item.
+     */
+    args?: any;
+
+    /**
+     * The submenu or submenu template for the menu item.
+     */
+    submenu?: Menu | Menu.Template;
+  }
 }
 
 
@@ -621,7 +406,7 @@ class Menu extends Widget {
    * not be used. Instead, the custom objects should be instantiated
    * and assembled manually.
    */
-  static fromTemplate(template: MenuTemplate): Menu {
+  static fromTemplate(template: Menu.Template): Menu {
     return Private.asMenu(template);
   }
 
@@ -630,11 +415,11 @@ class Menu extends Widget {
    *
    * @param options - The options for initializing the menu.
    */
-  constructor(options: IMenuOptions = {}) {
+  constructor(options: Menu.IOptions = {}) {
     super();
     this.addClass(MENU_CLASS);
-    this.setFlag(WidgetFlag.DisallowLayout);
-    this._renderer = options.renderer || MenuItemRenderer.instance;
+    this.setFlag(Widget.Flag.DisallowLayout);
+    this._renderer = options.renderer || Menu.ContentRenderer.instance;
   }
 
   /**
@@ -867,7 +652,7 @@ class Menu extends Widget {
    * Menu item options will be converted into a menu item using the
    * default `MenuItem` constructor.
    */
-  addItem(item: MenuItem | IMenuOptions): void {
+  addItem(item: MenuItem | MenuItem.IOptions): void {
     this.insertItem(this._items.length, item);
   }
 
@@ -885,7 +670,7 @@ class Menu extends Widget {
    * Menu item options will be converted into a menu item using the
    * default `MenuItem` constructor.
    */
-  insertItem(index: number, item: MenuItem | IMenuOptions): void {
+  insertItem(index: number, item: MenuItem | MenuItem.IOptions): void {
     // Close the menu if it's attached.
     if (this.isAttached) {
       this.close();
@@ -981,7 +766,7 @@ class Menu extends Widget {
    *
    * This is a no-op if the menu is already attached to the DOM.
    */
-  open(x: number, y: number, options: IOpenOptions = {}): void {
+  open(x: number, y: number, options: Menu.IOpenOptions = {}): void {
     // Bail early if the menu is already attached.
     if (this.isAttached) {
       return;
@@ -1402,14 +1187,230 @@ class Menu extends Widget {
   private _activeIndex = -1;
   private _childMenu: Menu = null;
   private _parentMenu: Menu = null;
-  private _renderer: IMenuItemRenderer;
   private _items = new Vector<MenuItem>();
+  private _renderer: Menu.IContentRenderer;
   private _nodes = new Vector<HTMLElement>();
 }
 
 
 // Define the signals for the `Menu` class.
 defineSignal(Menu.prototype, 'triggered');
+
+
+/**
+ * The namespace for the `Menu` class statics.
+ */
+export
+namespace Menu {
+  /**
+   * A type alias for a object which can be converted to a menu.
+   */
+  export
+  type Template = IterableOrArrayLike<MenuItem | MenuItem.IOptions>;
+
+  /**
+   * An options object for creating a menu.
+   */
+  export
+  interface IOptions {
+    /**
+     * A custom renderer for creating menu content.
+     */
+    renderer?: IContentRenderer;
+  }
+
+  /**
+   * An options object for the `open` method on a [[Menu]].
+   */
+  export
+  interface IOpenOptions {
+    /**
+     * Whether to force the X position of the menu.
+     *
+     * Setting to `true` will disable the logic which repositions the
+     * X coordinate of the menu if it will not fit entirely on screen.
+     *
+     * The default is `false`.
+     */
+    forceX?: boolean;
+
+    /**
+     * Whether to force the Y position of the menu.
+     *
+     * Setting to `true` will disable the logic which repositions the
+     * Y coordinate of the menu if it will not fit entirely on screen.
+     *
+     * The default is `false`.
+     */
+    forceY?: boolean;
+  }
+
+  /**
+   * An object which renders the content for a menu.
+   *
+   * #### Notes
+   * User code can implement a custom renderer when the default
+   * content created by the menu  is insufficient.
+   */
+  export
+  interface IContentRenderer {
+    /**
+     * Create a node for a menu item.
+     *
+     * @returns A new node for a menu item.
+     *
+     * #### Notes
+     * The data in the node should be uninitialized.
+     *
+     * The `updateTabNode` method will be called for initialization.
+     */
+    createItemNode(): HTMLElement;
+
+    /**
+     * Update an item node to reflect the state of a menu item.
+     *
+     * @param node - An item node created by a call to `createItemNode`.
+     *
+     * @param item - The menu item holding the data for the node.
+     *
+     * #### Notes
+     * This method should completely reset the state of the node to
+     * reflect the data in the menu item.
+     */
+    updateItemNode(node: HTMLElement, item: MenuItem): void;
+  }
+
+  /**
+   * The default concrete implementation of [[IContentRenderer]].
+   */
+  export
+  class ContentRenderer implements IContentRenderer {
+    /**
+     * Create a node for a menu item.
+     *
+     * @returns A new node for a menu item.
+     */
+    createItemNode(): HTMLElement {
+      let node = document.createElement('li');
+      let icon = document.createElement('span');
+      let text = document.createElement('span');
+      let shortcut = document.createElement('span');
+      let submenu = document.createElement('span');
+      node.className = ITEM_CLASS;
+      text.className = TEXT_CLASS;
+      shortcut.className = SHORTCUT_CLASS;
+      submenu.className = SUBMENU_CLASS;
+      node.appendChild(icon);
+      node.appendChild(text);
+      node.appendChild(shortcut);
+      node.appendChild(submenu);
+      return node;
+    }
+
+    /**
+     * Update an item node to reflect the state of a menu item.
+     *
+     * @param node - An item node created by a call to `createItemNode`.
+     *
+     * @param item - The menu item holding the data for the node.
+     */
+    updateItemNode(node: HTMLElement, item: MenuItem): void {
+      let sub = item.type === 'submenu';
+      let sep = item.type === 'separator';
+      let icon = node.firstChild as HTMLElement;
+      let text = icon.nextSibling as HTMLElement;
+      let shortcut = text.nextSibling as HTMLElement;
+      node.className = this.createItemClassName(item);
+      icon.className = this.createIconClassName(item);
+      text.textContent = sep ? '' : item.text.replace(/&&/g, '');
+      shortcut.textContent = (sep || sub) ? '' : item.shortcut;
+    }
+
+    /**
+     * Create the full class name for a menu item node.
+     *
+     * @param item - The menu item of interest.
+     *
+     * #### Notes
+     * This method will create the full class name for the item, taking
+     * into account its type and other relevant state based on the type.
+     */
+    createItemClassName(item: MenuItem): string {
+      let name = ITEM_CLASS;
+      switch (item.type) {
+      case 'normal':
+        name += ` ${NORMAL_TYPE_CLASS}`;
+        if (item.disabled) {
+          name += ` ${DISABLED_CLASS}`;
+        }
+        break;
+      case 'check':
+        name += ` ${CHECK_TYPE_CLASS}`;
+        if (item.checked) {
+          name += ` ${CHECKED_CLASS}`;
+        }
+        if (item.disabled) {
+          name += ` ${DISABLED_CLASS}`;
+        }
+        break;
+      case 'radio':
+        name += ` ${RADIO_TYPE_CLASS}`;
+        if (item.checked) {
+          name += ` ${CHECKED_CLASS}`;
+        }
+        if (item.disabled) {
+          name += ` ${DISABLED_CLASS}`;
+        }
+        break;
+      case 'submenu':
+        name += ` ${SUBMENU_TYPE_CLASS}`;
+        if (item.disabled) {
+          name += ` ${DISABLED_CLASS}`;
+        }
+        break;
+      case 'separator':
+        name += ` ${SEPARATOR_TYPE_CLASS}`;
+        break;
+      }
+      if (item.hidden) {
+        name += ` ${HIDDEN_CLASS}`;
+      }
+      if (item.className) {
+        name += ` ${item.className}`;
+      }
+      return name;
+    }
+
+    /**
+     * Create the full class name for a menu item icon node.
+     *
+     * @param item - The menu item of interest.
+     *
+     * #### Notes
+     * This method will create the class name for the item icon, taking
+     * into account its type and other relevant state based on the type.
+     */
+    createIconClassName(item: MenuItem): string {
+      let name = ICON_CLASS;
+      if (item.type !== 'separator' && item.icon) {
+        name += ` ${item.icon}`;
+      }
+      return name;
+    }
+  }
+
+  /**
+   * The namespace for the `ContentRenderer` class statics.
+   */
+  export
+  namespace ContentRenderer {
+    /**
+     * A default instance of the `ContentRenderer` class.
+     */
+    export
+    const instance = new ContentRenderer();
+  }
+}
 
 
 /**
@@ -1420,7 +1421,7 @@ namespace Private {
    * A coerce a menu item or options into a real menu item.
    */
   export
-  function asMenuItem(value: MenuItem | IMenuItemOptions): MenuItem {
+  function asMenuItem(value: MenuItem | MenuItem.IOptions): MenuItem {
     return value instanceof MenuItem ? value : new MenuItem(value);
   }
 
@@ -1428,7 +1429,7 @@ namespace Private {
    * Coerce a menu or menu template into a real menu.
    */
   export
-  function asMenu(value: Menu | MenuTemplate): Menu {
+  function asMenu(value: Menu | Menu.Template): Menu {
     let result: Menu;
     if (value instanceof Menu) {
       result = value;
