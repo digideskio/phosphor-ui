@@ -39,6 +39,7 @@ body.p-mod-override-cursor * {
   white-space: nowrap;
   overflow-x: hidden;
   overflow-y: auto;
+  outline: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;

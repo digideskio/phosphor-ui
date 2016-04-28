@@ -602,6 +602,7 @@ class Menu extends Widget {
     let content = document.createElement('ul');
     content.className = CONTENT_CLASS;
     node.appendChild(content);
+    node.tabIndex = -1;
     return node;
   }
 
@@ -648,25 +649,14 @@ class Menu extends Widget {
   }
 
   /**
-   * A signal emitted when the menu is closed.
-   *
-   * #### Notes
-   * This signal is emitted in response to a close request.
-   *
-   * A menu is closed automatically when an item is triggered in the
-   * hierarchy, or when the Escape key is pressed for an open menu.
-   */
-  closed: ISignal<Menu, void>;
-
-  /**
    * A signal emitted when a menu item in the hierarchy is triggered.
    *
    * #### Notes
-   * This signal is emitted whenever any descendant item in the menu
-   * hierarchy is triggered by user action. This means that is only
-   * necessary to connect to the triggered signal of the root menu.
+   * This signal is emitted when a descendant menu item in the menu
+   * hierarchy is triggered, so consumers only need to to connect to
+   * the triggered signal of the root menu.
    *
-   * The argument for the signal is the item which was triggered.
+   * The argument for the signal is the menu item which was triggered.
    */
   triggered: ISignal<Menu, MenuItem>;
 
@@ -719,6 +709,16 @@ class Menu extends Widget {
   }
 
   /**
+   * A read-only sequence of the menu items in the menu.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get items(): ISequence<MenuItem> {
+    return this._items;
+  }
+
+  /**
    * Get the currently active menu item node.
    *
    * #### Notes
@@ -737,16 +737,6 @@ class Menu extends Widget {
    */
   set activeItemNode(value: HTMLElement) {
     this.activeIndex = indexOf(this._nodes, value);
-  }
-
-  /**
-   * A read-only sequence of the menu items in the menu.
-   *
-   * #### Notes
-   * This is a read-only property.
-   */
-  get items(): ISequence<MenuItem> {
-    return this._items;
   }
 
   /**
@@ -784,7 +774,7 @@ class Menu extends Widget {
    * Set the index of the currently active menu item.
    *
    * #### Notes
-   * If the index is out of range, or points to a disabled, hidden,
+   * If the index is out of range, or points to a `disabled`, `hidden`,
    * or `'separator'` type item, the index will be set to `-1`.
    */
   set activeIndex(value: number) {
@@ -818,6 +808,53 @@ class Menu extends Widget {
 
     // Update the active index.
     this._activeIndex = i;
+  }
+
+  /**
+   * Trigger the active item.
+   *
+   * #### Notes
+   * If the active item is a submenu, it will be opened and the first
+   * item will be activated. Otherwise, the `triggered` signal will be
+   * emitted for the menu hierarchy.
+   *
+   * If the menu is not attached, this is a no-op.
+   *
+   * If there is no active item, this is a no-op.
+   */
+  triggerActiveItem(): void {
+    // Bail if the menu is not attached.
+    if (!this.isAttached) {
+      return;
+    }
+
+    // Bail if there is no active item.
+    let item = this.activeItem;
+    if (!item) {
+      return;
+    }
+
+    // Cancel the pending timers.
+    this._cancelOpenTimer();
+    this._cancelCloseTimer();
+
+    // If the item is a submenu, open it.
+    if (item.type === 'submenu') {
+      this._openChildMenu(true);
+      return;
+    }
+
+    // Otherwise, emit the triggered signal for the ancestors.
+    let root: Menu;
+    let menu: Menu = this;
+    while (menu) {
+      root = menu;
+      menu.triggered.emit(item);
+      menu = menu._parentMenu;
+    }
+
+    // Close the root menu.
+    root.close();
   }
 
   /**
@@ -855,7 +892,7 @@ class Menu extends Widget {
     }
 
     // Reset the active index.
-    this._activeIndex = -1;
+    this.activeIndex = -1;
 
     // Clamp the insert index to the vector bounds.
     let i = Math.max(0, Math.min(Math.floor(index), this._items.length));
@@ -895,7 +932,7 @@ class Menu extends Widget {
     }
 
     // Reset the active index.
-    this._activeIndex = -1;
+    this.activeIndex = -1;
 
     // Look up the item node.
     let node = this._nodes.at(i);
@@ -918,7 +955,7 @@ class Menu extends Widget {
     }
 
     // Reset the active index.
-    this._activeIndex = -1;
+    this.activeIndex = -1;
 
     // Clear the item and node vectors.
     this._items.clear();
@@ -945,12 +982,23 @@ class Menu extends Widget {
    * This is a no-op if the menu is already attached to the DOM.
    */
   open(x: number, y: number, options: IOpenOptions = {}): void {
+    // Bail early if the menu is already attached.
     if (this.isAttached) {
       return;
     }
+
+    // Extract the position options.
     let forceX = options.forceX || false;
     let forceY = options.forceY || false;
+
+    // Open the menu as a root menu.
     Private.openRootMenu(this, x, y, forceX, forceY);
+
+    // Attach the extra root menu listeners.
+    document.addEventListener('mousedown', this, true);
+
+    // Focus the menu to accept keyboard input.
+    this.focus();
   }
 
   /**
@@ -965,29 +1013,30 @@ class Menu extends Widget {
    */
   handleEvent(event: Event): void {
     switch (event.type) {
-    // Events attached to the menu node:
-    case 'mouseup':
-      this._evtMouseUp(event as MouseEvent);
-      break;
-    case 'mousemove':
-      this._evtMouseMove(event as MouseEvent);
-      break;
-    case 'mouseleave':
-      this._evtMouseLeave(event as MouseEvent);
-      break;
-    case 'contextmenu':
-      event.preventDefault();
-      event.stopPropagation();
-      break;
-    // Events attached to the document node:
     case 'keydown':
       this._evtKeyDown(event as KeyboardEvent);
       break;
     case 'keypress':
       this._evtKeyPress(event as KeyboardEvent);
       break;
+    case 'mouseup':
+      this._evtMouseUp(event as MouseEvent);
+      break;
+    case 'mousemove':
+      this._evtMouseMove(event as MouseEvent);
+      break;
+    case 'mouseenter':
+      this._evtMouseEnter(event as MouseEvent);
+      break;
+    case 'mouseleave':
+      this._evtMouseLeave(event as MouseEvent);
+      break;
     case 'mousedown':
       this._evtMouseDown(event as MouseEvent);
+      break;
+    case 'contextmenu':
+      event.preventDefault();
+      event.stopPropagation();
       break;
     }
   }
@@ -996,25 +1045,26 @@ class Menu extends Widget {
    * A message handler invoked on an `'after-attach'` message.
    */
   protected onAfterAttach(msg: Message): void {
+    this.node.addEventListener('keydown', this);
+    this.node.addEventListener('keypress', this);
     this.node.addEventListener('mouseup', this);
     this.node.addEventListener('mousemove', this);
+    this.node.addEventListener('mouseenter', this);
     this.node.addEventListener('mouseleave', this);
     this.node.addEventListener('contextmenu', this);
-    document.addEventListener('keydown', this, true);
-    document.addEventListener('keypress', this, true);
-    document.addEventListener('mousedown', this, true);
   }
 
   /**
    * A message handler invoked on a `'before-detach'` message.
    */
   protected onBeforeDetach(msg: Message): void {
+    this.node.removeEventListener('keydown', this);
+    this.node.removeEventListener('keypress', this);
     this.node.removeEventListener('mouseup', this);
     this.node.removeEventListener('mousemove', this);
+    this.node.removeEventListener('mouseenter', this);
     this.node.removeEventListener('mouseleave', this);
     this.node.removeEventListener('contextmenu', this);
-    document.removeEventListener('keydown', this, true);
-    document.removeEventListener('keypress', this, true);
     document.removeEventListener('mousedown', this, true);
   }
 
@@ -1061,7 +1111,7 @@ class Menu extends Widget {
       childMenu.close();
     }
 
-    // Remove this menu from any parent.
+    // Remove this menu from its parent and focus the parent.
     let parentMenu = this._parentMenu;
     if (parentMenu) {
       this._parentMenu = null;
@@ -1069,21 +1119,65 @@ class Menu extends Widget {
       parentMenu._cancelCloseTimer();
       parentMenu._childIndex = -1;
       parentMenu._childMenu = null;
+      parentMenu.focus();
     }
 
-    // If the menu is parented, remove it and emit the closed signal.
-    if (this.parent) {
-      this.parent = null;
-      this.closed.emit(void 0);
-      return;
-    }
+    // Finish closing the menu.
+    super.onCloseRequest(msg);
+  }
 
-    // If the menu is attached, detach it and emit the closed signal.
-    if (this.isAttached) {
-      Widget.detach(this);
-      this.closed.emit(void 0);
-      return;
+  /**
+   * Handle the `'keydown'` event for the menu.
+   *
+   * #### Notes
+   * This listener is attached to the menu node.
+   */
+  private _evtKeyDown(event: KeyboardEvent): void {
+    switch (event.keyCode) {
+    case 13: // Enter
+      event.preventDefault();
+      event.stopPropagation();
+      this.triggerActiveItem();
+      break;
+    case 27: // Escape
+      event.preventDefault();
+      event.stopPropagation();
+      this.close();
+      break;
+    case 37: // Left Arrow
+      event.preventDefault();
+      event.stopPropagation();
+      if (this._parentMenu) this.close();
+      break;
+    case 38: // Up Arrow
+      event.preventDefault();
+      event.stopPropagation();
+      Private.activatePrev(this);
+      break;
+    case 39: // Right Arrow
+      event.preventDefault();
+      event.stopPropagation();
+      let item = this.activeItem;
+      if (item && item.type === 'submenu') this.triggerActiveItem();
+      break;
+    case 40: // Down Arrow
+      event.preventDefault();
+      event.stopPropagation();
+      Private.activateNext(this);
+      break;
     }
+  }
+
+  /**
+   * Handle the `'keypress'` event for the menu.
+   *
+   * #### Notes
+   * This listener is attached to the menu node.
+   */
+  private _evtKeyPress(event: KeyboardEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    Private.activateMnemonic(this, String.fromCharCode(event.charCode));
   }
 
   /**
@@ -1093,39 +1187,12 @@ class Menu extends Widget {
    * This listener is attached to the menu node.
    */
   private _evtMouseUp(event: MouseEvent): void {
-    // Bail if the left button was not released.
     if (event.button !== 0) {
       return;
     }
-
-    // Prevent further propagation of the event.
     event.preventDefault();
     event.stopPropagation();
-
-    // Hit test the item nodes for the item under the mouse.
-    let x = event.clientX;
-    let y = event.clientY;
-    let i = findIndex(this._nodes, node => hitTest(node, x, y));
-
-    // Update the active index.
-    this.activeIndex = i;
-
-    // Bail if there is no active item.
-    let item = this.activeItem;
-    if (!item) {
-      return;
-    }
-
-    // Cancel the pending timers.
-    this._cancelOpenTimer();
-    this._cancelCloseTimer();
-
-    // Open or trigger the item immediately.
-    if (item.type === 'submenu') {
-      this._openChildMenu();
-    } else {
-      this._triggerItem(item);
-    }
+    this.triggerActiveItem();
   }
 
   /**
@@ -1148,13 +1215,6 @@ class Menu extends Widget {
     // Update and coerce the active index.
     this.activeIndex = i;
     i = this.activeIndex;
-
-    // Synchronize the active ancestor items.
-    for (let menu = this._parentMenu; menu; menu = menu._parentMenu) {
-      menu._cancelOpenTimer();
-      menu._cancelCloseTimer();
-      menu.activeIndex = menu._childIndex;
-    }
 
     // If the index is the current child index, cancel the timers.
     if (i === this._childIndex) {
@@ -1179,6 +1239,21 @@ class Menu extends Widget {
 
     // Start the open timer to open the active item submenu.
     this._startOpenTimer();
+  }
+
+  /**
+   * Handle the `'mouseenter'` event for the menu.
+   *
+   * #### Notes
+   * This listener is attached to the menu node.
+   */
+  private _evtMouseEnter(event: MouseEvent): void {
+    // Synchronize the active ancestor items.
+    for (let menu = this._parentMenu; menu; menu = menu._parentMenu) {
+      menu._cancelOpenTimer();
+      menu._cancelCloseTimer();
+      menu.activeIndex = menu._childIndex;
+    }
   }
 
   /**
@@ -1209,168 +1284,33 @@ class Menu extends Widget {
   }
 
   /**
-   * Handle the `'keydown'` event for the menu.
-   *
-   * #### Notes
-   * This listener is attached to the document node.
-   */
-  private _evtKeyDown(event: KeyboardEvent): void {
-    // Only process the event if the menu is a leaf menu.
-    if (this._childMenu) {
-      return;
-    }
-
-    // Extract the key code from the event.
-    let kc = event.keyCode;
-
-    // `Enter`
-    // Trigger or open the active item.
-    if (kc === 13) {
-      event.stopPropagation();
-      event.preventDefault();
-
-      // Bail if there is no active item.
-      let item = this.activeItem;
-      if (!item) {
-        return;
-      }
-
-      // Cancel the pending timers.
-      this._cancelOpenTimer();
-      this._cancelCloseTimer();
-
-      // Trigger a non-submenu item.
-      if (item.type !== 'submenu') {
-        this._triggerItem(item);
-        return;
-      }
-
-      // Otherwise open the submenu item.
-      this._openChildMenu();
-
-      // Activate the first item in the child menu if possible.
-      if (this._childMenu) {
-        Private.activateFirstSelectable(this._childMenu);
-      }
-      return;
-    }
-
-    // `Escape`
-    // Close this menu.
-    if (kc === 27) {
-      event.stopPropagation();
-      event.preventDefault();
-      this.close();
-      return;
-    }
-
-    // `Left Arrow`
-    // Close this menu if it's a submenu.
-    if (kc === 37) {
-      event.stopPropagation();
-      event.preventDefault();
-      if (this._parentMenu) {
-        this.close();
-      }
-      return;
-    }
-
-    // `Up Arrow`
-    // Activate the previous item.
-    if (kc === 38) {
-      event.stopPropagation();
-      event.preventDefault();
-      Private.activatePrevSelectable(this);
-      return;
-    }
-
-    // `Right Arrow`
-    // Open the active item if it's a submenu.
-    if (kc === 39) {
-      event.stopPropagation();
-      event.preventDefault();
-
-      // Bail if the item is not a submenu.
-      let item = this.activeItem;
-      if (!item || item.type !== 'submenu') {
-        return;
-      }
-
-      // Cancel the pending timers.
-      this._cancelOpenTimer();
-      this._cancelCloseTimer();
-
-      // Open the submenu item.
-      this._openChildMenu();
-
-      // Activate the first item in the child menu if possible.
-      if (this._childMenu) {
-        Private.activateFirstSelectable(this._childMenu);
-      }
-      return;
-    }
-
-    // `Down Arrow`
-    // Activate the next item.
-    if (kc === 40) {
-      event.stopPropagation();
-      event.preventDefault();
-      Private.activateNextSelectable(this);
-      return;
-    }
-  }
-
-  /**
-   * Handle the `'keypress'` event for the menu.
-   *
-   * #### Notes
-   * This listener is attached to the document node.
-   */
-  private _evtKeyPress(event: KeyboardEvent): void {
-    // Only process the event if the menu is a leaf menu.
-    if (this._childMenu) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    Private.activateNextMnemonic(this, String.fromCharCode(event.charCode));
-  }
-
-  /**
    * Handle the `'mousedown'` event for the menu.
    *
    * #### Notes
    * This listener is attached to the document node.
    */
   private _evtMouseDown(event: MouseEvent): void {
-    // Only process the event if the menu is the root menu.
-    if (this._parentMenu) {
-      return;
+    // This handler is only invoked for the root menu. The mouse
+    // button which is pressed is irrelevant. If the press is not
+    // on a menu, the entire hierarchy is closed and the event is
+    // allowed to propagate. This allows other code to act on the
+    // event, such as focusing the clicked element.
+    if (Private.hitTestMenus(this, event.clientX, event.clientY)) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      this.close();
     }
-
-    // The mouse button which was pressed is irrelevant.
-
-    // Stop the event if the mouse is over a menu in the hierarchy.
-    for (let menu: Menu = this; menu; menu = menu._childMenu) {
-      if (hitTest(menu.node, event.clientX, event.clientY)) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-    }
-
-    // Otherwise, close the menu hierarchy. The event is allowed to
-    // propagate so that focus can transition to the targeted node.
-    this.close();
   }
 
   /**
    * Open the child menu at the active index immediately.
    *
-   * If a different child menu is already open, it will be closed.
+   * If a different child menu is already open, it will be closed,
+   * event if the active item is not a valid submenu.
    */
-  private _openChildMenu(): void {
-    // If the item is not a valid submenu, just close the child menu.
+  private _openChildMenu(activateFirst = false): void {
+    // If the item is not a valid submenu, close the child menu.
     let item = this.activeItem;
     if (!item || item.type !== 'submenu' || !item.submenu) {
       this._closeChildMenu();
@@ -1395,46 +1335,21 @@ class Menu extends Widget {
 
     // Open the submenu at the active node.
     Private.openSubmenu(menu, this.activeItemNode);
+
+    // Activate the first item if desired.
+    if (activateFirst) Private.activateFirst(menu);
+
+    // Set focus to the child menu.
+    menu.focus();
   }
 
   /**
-   * Close the open child menu immediately.
+   * Close the child menu immediately.
    *
    * This is a no-op if a child menu is not open.
    */
   private _closeChildMenu(): void {
-    // Bail early if a child menu is not open.
-    let child = this._childMenu
-    if (!child) {
-      return;
-    }
-
-    // Reset the private child state.
-    this._childIndex = -1;
-    this._childMenu = null;
-
-    // Remove the parent menu reference from the child.
-    child._parentMenu = null;
-
-    // Actually close the child menu.
-    child.close();
-  }
-
-  /**
-   * Trigger the given menu item.
-   *
-   * This emits the `triggered` signal for each ancestor menu in the
-   * hierarchy, then closes the entire hierarchy from the root menu.
-   */
-  private _triggerItem(item: MenuItem): void {
-    let root: Menu;
-    let menu: Menu = this;
-    while (menu) {
-      root = menu;
-      menu.triggered.emit(item);
-      menu = menu._parentMenu;
-    }
-    root.close();
+    if (this._childMenu) this._childMenu.close();
   }
 
   /**
@@ -1494,7 +1409,6 @@ class Menu extends Widget {
 
 
 // Define the signals for the `Menu` class.
-defineSignal(Menu.prototype, 'closed');
 defineSignal(Menu.prototype, 'triggered');
 
 
@@ -1588,7 +1502,7 @@ namespace Private {
    * If no item is selectable, the index will be set to `-1`.
    */
   export
-  function activateFirstSelectable(menu: Menu): void {
+  function activateFirst(menu: Menu): void {
     let items = menu.items;
     for (let i = 0, n = items.length; i < n; ++i) {
       if (isSelectable(items.at(i))) {
@@ -1605,7 +1519,7 @@ namespace Private {
    * If no item is selectable, the index will be set to `-1`.
    */
   export
-  function activateNextSelectable(menu: Menu): void {
+  function activateNext(menu: Menu): void {
     let items = menu.items;
     let j = menu.activeIndex + 1;
     for (let i = 0, n = items.length; i < n; ++i) {
@@ -1624,7 +1538,7 @@ namespace Private {
    * If no item is selectable, the index will be set to `-1`.
    */
   export
-  function activatePrevSelectable(menu: Menu): void {
+  function activatePrev(menu: Menu): void {
     let items = menu.items;
     let ai = menu.activeIndex;
     let j = ai <= 0 ? items.length - 1 : ai - 1;
@@ -1644,7 +1558,7 @@ namespace Private {
    * If no mnemonic is found, the index will be set to `-1`.
    */
   export
-  function activateNextMnemonic(menu: Menu, char: string): void {
+  function activateMnemonic(menu: Menu, char: string): void {
     let items = menu.items;
     let c = char.toUpperCase();
     let j = menu.activeIndex + 1;
@@ -1662,6 +1576,17 @@ namespace Private {
       return;
     }
     menu.activeIndex = -1;
+  }
+
+  /**
+   * Hit test a menu hierarchy starting at the given root.
+   */
+  export
+  function hitTestMenus(menu: Menu, x: number, y: number): boolean {
+    for (; menu; menu = menu.childMenu) {
+      if (hitTest(menu.node, x, y)) return true;
+    }
+    return false;
   }
 
   /**
