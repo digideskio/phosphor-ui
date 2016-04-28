@@ -100,7 +100,7 @@ class Widget implements IDisposable, IMessageHandler {
     }
 
     // Set the disposed flag and emit the disposed signal.
-    this.setFlag(WidgetFlag.IsDisposed);
+    this.setFlag(Widget.Flag.IsDisposed);
     this.disposed.emit(void 0);
 
     // Remove or detach the widget if necessary.
@@ -137,7 +137,7 @@ class Widget implements IDisposable, IMessageHandler {
    * This is a read-only property.
    */
   get isDisposed(): boolean {
-    return this.testFlag(WidgetFlag.IsDisposed);
+    return this.testFlag(Widget.Flag.IsDisposed);
   }
 
   /**
@@ -147,7 +147,7 @@ class Widget implements IDisposable, IMessageHandler {
    * This is a read-only property.
    */
   get isAttached(): boolean {
-    return this.testFlag(WidgetFlag.IsAttached);
+    return this.testFlag(Widget.Flag.IsAttached);
   }
 
   /**
@@ -157,7 +157,7 @@ class Widget implements IDisposable, IMessageHandler {
    * This is a read-only property.
    */
   get isHidden(): boolean {
-    return this.testFlag(WidgetFlag.IsHidden);
+    return this.testFlag(Widget.Flag.IsHidden);
   }
 
   /**
@@ -170,7 +170,7 @@ class Widget implements IDisposable, IMessageHandler {
    * This is a read-only property.
    */
   get isVisible(): boolean {
-    return this.testFlag(WidgetFlag.IsVisible);
+    return this.testFlag(Widget.Flag.IsVisible);
   }
 
   /**
@@ -277,7 +277,7 @@ class Widget implements IDisposable, IMessageHandler {
     if (this._layout === value) {
       return;
     }
-    if (this.testFlag(WidgetFlag.DisallowLayout)) {
+    if (this.testFlag(Widget.Flag.DisallowLayout)) {
       throw new Error('Cannot set widget layout.');
     }
     if (this._layout) {
@@ -443,10 +443,10 @@ class Widget implements IDisposable, IMessageHandler {
    * If the widget is not explicitly hidden, this is a no-op.
    */
   show(): void {
-    if (!this.testFlag(WidgetFlag.IsHidden)) {
+    if (!this.testFlag(Widget.Flag.IsHidden)) {
       return;
     }
-    this.clearFlag(WidgetFlag.IsHidden);
+    this.clearFlag(Widget.Flag.IsHidden);
     this.removeClass(HIDDEN_CLASS);
     if (this.isAttached && (!this.parent || this.parent.isVisible)) {
       sendMessage(this, WidgetMessage.AfterShow);
@@ -465,13 +465,13 @@ class Widget implements IDisposable, IMessageHandler {
    * If the widget is explicitly hidden, this is a no-op.
    */
   hide(): void {
-    if (this.testFlag(WidgetFlag.IsHidden)) {
+    if (this.testFlag(Widget.Flag.IsHidden)) {
       return;
     }
     if (this.isAttached && (!this.parent || this.parent.isVisible)) {
       sendMessage(this, WidgetMessage.BeforeHide);
     }
-    this.setFlag(WidgetFlag.IsHidden);
+    this.setFlag(Widget.Flag.IsHidden);
     this.addClass(HIDDEN_CLASS);
     if (this.parent) {
       sendMessage(this.parent, new ChildMessage('child-hidden', this));
@@ -500,7 +500,7 @@ class Widget implements IDisposable, IMessageHandler {
    * #### Notes
    * This will not typically be called directly by user code.
    */
-  testFlag(flag: WidgetFlag): boolean {
+  testFlag(flag: Widget.Flag): boolean {
     return (this._flags & flag) !== 0;
   }
 
@@ -510,7 +510,7 @@ class Widget implements IDisposable, IMessageHandler {
    * #### Notes
    * This will not typically be called directly by user code.
    */
-  setFlag(flag: WidgetFlag): void {
+  setFlag(flag: Widget.Flag): void {
     this._flags |= flag;
   }
 
@@ -520,7 +520,7 @@ class Widget implements IDisposable, IMessageHandler {
    * #### Notes
    * This will not typically be called directly by user code.
    */
-  clearFlag(flag: WidgetFlag): void {
+  clearFlag(flag: Widget.Flag): void {
     this._flags &= ~flag;
   }
 
@@ -543,27 +543,27 @@ class Widget implements IDisposable, IMessageHandler {
       this.onUpdateRequest(msg);
       break;
     case 'after-show':
-      this.setFlag(WidgetFlag.IsVisible);
+      this.setFlag(Widget.Flag.IsVisible);
       this.notifyLayout(msg);
       this.onAfterShow(msg);
       break;
     case 'before-hide':
       this.notifyLayout(msg);
       this.onBeforeHide(msg);
-      this.clearFlag(WidgetFlag.IsVisible);
+      this.clearFlag(Widget.Flag.IsVisible);
       break;
     case 'after-attach':
       let visible = !this.isHidden && (!this.parent || this.parent.isVisible);
-      if (visible) this.setFlag(WidgetFlag.IsVisible);
-      this.setFlag(WidgetFlag.IsAttached);
+      if (visible) this.setFlag(Widget.Flag.IsVisible);
+      this.setFlag(Widget.Flag.IsAttached);
       this.notifyLayout(msg);
       this.onAfterAttach(msg);
       break;
     case 'before-detach':
       this.notifyLayout(msg);
       this.onBeforeDetach(msg);
-      this.clearFlag(WidgetFlag.IsVisible);
-      this.clearFlag(WidgetFlag.IsAttached);
+      this.clearFlag(Widget.Flag.IsVisible);
+      this.clearFlag(Widget.Flag.IsAttached);
       break;
     case 'focus-request':
       this.notifyLayout(msg);
@@ -719,6 +719,37 @@ defineSignal(Widget.prototype, 'disposed');
  */
 export
 namespace Widget {
+  /**
+   * An enum of widget bit flags.
+   */
+  export
+  enum Flag {
+    /**
+     * The widget has been disposed.
+     */
+    IsDisposed = 0x1,
+
+    /**
+     * The widget is attached to the DOM.
+     */
+    IsAttached = 0x2,
+
+    /**
+     * The widget is hidden.
+     */
+    IsHidden = 0x4,
+
+    /**
+     * The widget is visible.
+     */
+    IsVisible = 0x8,
+
+    /**
+     * A layout cannot be set on the widget.
+     */
+    DisallowLayout = 0x10
+  }
+
   /**
    * Attach a widget to a host DOM node.
    *
@@ -1040,38 +1071,6 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
 
   private _disposed = false;
   private _parent: Widget = null;
-}
-
-
-/**
- * An enum of widget bit flags.
- */
-export
-enum WidgetFlag {
-  /**
-   * The widget has been disposed.
-   */
-  IsDisposed = 0x1,
-
-  /**
-   * The widget is attached to the DOM.
-   */
-  IsAttached = 0x2,
-
-  /**
-   * The widget is hidden.
-   */
-  IsHidden = 0x4,
-
-  /**
-   * The widget is visible.
-   */
-  IsVisible = 0x8,
-
-  /**
-   * A layout cannot be set on the widget.
-   */
-  DisallowLayout = 0x10
 }
 
 

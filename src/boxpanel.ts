@@ -74,36 +74,6 @@ const BOTTOM_TO_TOP_CLASS = 'p-mod-bottom-to-top';
 
 
 /**
- * A type alias for a box layout direction.
- */
-export
-type Direction = (
-  'left-to-right' | 'right-to-left' | 'top-to-bottom' | 'bottom-to-top'
-);
-
-
-/**
- * An options object for initializing a box panel.
- */
-export
-interface IBoxPanelOptions {
-  /**
-   * The layout direction of the panel.
-   *
-   * The default is `'top-to-bottom'`.
-   */
-  direction?: Direction;
-
-  /**
-   * The spacing between items in the panel.
-   *
-   * The default is `8`.
-   */
-  spacing?: number;
-}
-
-
-/**
  * A panel which arranges its widgets in a single row or column.
  *
  * #### Notes
@@ -123,7 +93,7 @@ class BoxPanel extends Panel {
    *
    * @param options - The options for initializing the box panel.
    */
-  constructor(options: IBoxPanelOptions = {}) {
+  constructor(options: BoxPanel.IOptions = {}) {
     super();
     this.addClass(BOX_PANEL_CLASS);
     if (options.direction !== void 0) {
@@ -137,14 +107,14 @@ class BoxPanel extends Panel {
   /**
    * Get the layout direction for the box panel.
    */
-  get direction(): Direction {
+  get direction(): BoxPanel.Direction {
     return (this.layout as BoxLayout).direction;
   }
 
   /**
    * Set the layout direction for the box panel.
    */
-  set direction(value: Direction) {
+  set direction(value: BoxPanel.Direction) {
     (this.layout as BoxLayout).direction = value;
   }
 
@@ -183,6 +153,32 @@ class BoxPanel extends Panel {
  */
 export
 namespace BoxPanel {
+  /**
+   * A type alias for a box panel direction.
+   */
+  export
+  type Direction = BoxLayout.Direction;
+
+  /**
+   * An options object for initializing a box panel.
+   */
+  export
+  interface IOptions {
+    /**
+     * The layout direction of the panel.
+     *
+     * The default is `'top-to-bottom'`.
+     */
+    direction?: Direction;
+
+    /**
+     * The spacing between items in the panel.
+     *
+     * The default is `8`.
+     */
+    spacing?: number;
+  }
+
   /**
    * Get the box panel stretch factor for the given widget.
    *
@@ -241,14 +237,14 @@ class BoxLayout extends PanelLayout {
   /**
    * Get the layout direction for the box layout.
    */
-  get direction(): Direction {
+  get direction(): BoxLayout.Direction {
     return this._direction;
   }
 
   /**
    * Set the layout direction for the box layout.
    */
-  set direction(value: Direction) {
+  set direction(value: BoxLayout.Direction) {
     if (this._direction === value) {
       return;
     }
@@ -599,7 +595,7 @@ class BoxLayout extends PanelLayout {
   private _dirty = false;
   private _box: IBoxSizing = null;
   private _sizers = new Vector<BoxSizer>();
-  private _direction: Direction = 'top-to-bottom';
+  private _direction: BoxLayout.Direction = 'top-to-bottom';
 }
 
 
@@ -608,6 +604,14 @@ class BoxLayout extends PanelLayout {
  */
 export
 namespace BoxLayout {
+  /**
+   * A type alias for a box layout direction.
+   */
+  export
+  type Direction = (
+    'left-to-right' | 'right-to-left' | 'top-to-bottom' | 'bottom-to-top'
+  );
+
   /**
    * Get the box layout stretch factor for the given widget.
    *
@@ -694,7 +698,7 @@ namespace Private {
    * Test whether a direction has horizontal orientation.
    */
   export
-  function isHorizontal(dir: Direction): boolean {
+  function isHorizontal(dir: BoxLayout.Direction): boolean {
     return dir === 'left-to-right' || dir === 'right-to-left';
   }
 
@@ -702,7 +706,7 @@ namespace Private {
    * Toggle the CSS direction class for the given widget.
    */
   export
-  function toggleDirection(widget: Widget, dir: Direction): void {
+  function toggleDirection(widget: Widget, dir: BoxLayout.Direction): void {
     widget.toggleClass(LEFT_TO_RIGHT_CLASS, dir === 'left-to-right');
     widget.toggleClass(RIGHT_TO_LEFT_CLASS, dir === 'right-to-left');
     widget.toggleClass(TOP_TO_BOTTOM_CLASS, dir === 'top-to-bottom');

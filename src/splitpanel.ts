@@ -94,34 +94,6 @@ const VERTICAL_CLASS = 'p-mod-vertical';
 
 
 /**
- * A type alias for a split layout orientation.
- */
-export
-type Orientation = 'horizontal' | 'vertical';
-
-
-/**
- * An options object for initializing a split panel.
- */
-export
-interface ISplitPanelOptions {
-  /**
-   * The layout orientation of the panel.
-   *
-   * The default is `'horizontal'`.
-   */
-  orientation?: Orientation;
-
-  /**
-   * The spacing between items in the panel.
-   *
-   * The default is `3`.
-   */
-  spacing?: number;
-}
-
-
-/**
  * A panel which arranges its widgets into resizable sections.
  *
  * #### Notes
@@ -153,7 +125,7 @@ class SplitPanel extends Panel {
    *
    * @param options - The options for initializing the split panel.
    */
-  constructor(options: ISplitPanelOptions = {}) {
+  constructor(options: SplitPanel.IOptions = {}) {
     super();
     this.addClass(SPLIT_PANEL_CLASS);
     if (options.orientation !== void 0) {
@@ -175,14 +147,14 @@ class SplitPanel extends Panel {
   /**
    * Get the layout orientation for the split panel.
    */
-  get orientation(): Orientation {
+  get orientation(): SplitPanel.Orientation {
     return (this.layout as SplitLayout).orientation;
   }
 
   /**
    * Set the layout orientation for the split panel.
    */
-  set orientation(value: Orientation) {
+  set orientation(value: SplitPanel.Orientation) {
     (this.layout as SplitLayout).orientation = value;
   }
 
@@ -435,6 +407,32 @@ class SplitPanel extends Panel {
 export
 namespace SplitPanel {
   /**
+   * A type alias for a split panel orientation.
+   */
+  export
+  type Orientation = SplitLayout.Orientation;
+
+  /**
+   * An options object for initializing a split panel.
+   */
+  export
+  interface IOptions {
+    /**
+     * The layout orientation of the panel.
+     *
+     * The default is `'horizontal'`.
+     */
+    orientation?: Orientation;
+
+    /**
+     * The spacing between items in the panel.
+     *
+     * The default is `3`.
+     */
+    spacing?: number;
+  }
+
+  /**
    * Get the split panel stretch factor for the given widget.
    *
    * @param widget - The widget of interest.
@@ -461,20 +459,6 @@ namespace SplitPanel {
 
 
 /**
- * A renderer which creates handles for a split layout.
- */
-export
-interface IHandleRenderer {
-  /**
-   * Create a new handle node for use with a split layout.
-   *
-   * @returns A new handle node.
-   */
-  createHandleNode(): HTMLElement;
-}
-
-
-/**
  * A layout which arranges its widgets into resizable sections.
  */
 export
@@ -484,7 +468,7 @@ class SplitLayout extends PanelLayout {
    *
    * @param renderer - The handle renderer for creating split handles.
    */
-  constructor(renderer: IHandleRenderer) {
+  constructor(renderer: SplitLayout.IHandleRenderer) {
     super();
     this._renderer = renderer;
   }
@@ -492,14 +476,14 @@ class SplitLayout extends PanelLayout {
   /**
    * Get the layout orientation for the split layout.
    */
-  get orientation(): Orientation {
+  get orientation(): SplitLayout.Orientation {
     return this._orientation;
   }
 
   /**
    * Set the layout orientation for the split layout.
    */
-  set orientation(value: Orientation) {
+  set orientation(value: SplitLayout.Orientation) {
     if (this._orientation === value) {
       return;
     }
@@ -969,10 +953,10 @@ class SplitLayout extends PanelLayout {
   private _spacing = 3;
   private _dirty = false;
   private _box: IBoxSizing = null;
-  private _renderer: IHandleRenderer;
   private _sizers = new Vector<BoxSizer>();
   private _handles = new Vector<HTMLElement>();
-  private _orientation: Orientation = 'horizontal';
+  private _renderer: SplitLayout.IHandleRenderer;
+  private _orientation: SplitLayout.Orientation = 'horizontal';
 }
 
 
@@ -981,6 +965,25 @@ class SplitLayout extends PanelLayout {
  */
 export
 namespace SplitLayout {
+  /**
+   * A type alias for a split layout orientation.
+   */
+  export
+  type Orientation = 'horizontal' | 'vertical';
+
+  /**
+   * A renderer which creates handles for a split layout.
+   */
+  export
+  interface IHandleRenderer {
+    /**
+     * Create a new handle node for use with a split layout.
+     *
+     * @returns A new handle node.
+     */
+    createHandleNode(): HTMLElement;
+  }
+
   /**
    * Get the split layout stretch factor for the given widget.
    *
@@ -1063,7 +1066,7 @@ namespace Private {
    * Create a new split handle node using the given renderer.
    */
   export
-  function createHandle(renderer: IHandleRenderer): HTMLElement {
+  function createHandle(renderer: SplitLayout.IHandleRenderer): HTMLElement {
     let node = renderer.createHandleNode();
     node.style.position = 'absolute';
     return node;
@@ -1073,7 +1076,7 @@ namespace Private {
    * Toggle the CSS orientation class for the given widget.
    */
   export
-  function toggleOrientation(widget: Widget, orient: Orientation): void {
+  function toggleOrientation(widget: Widget, orient: SplitLayout.Orientation): void {
     widget.toggleClass(HORIZONTAL_CLASS, orient === 'horizontal');
     widget.toggleClass(VERTICAL_CLASS, orient === 'vertical');
   }

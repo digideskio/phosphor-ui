@@ -22,7 +22,7 @@ import {
 } from './stackedpanel';
 
 import {
-  ICurrentChangedArgs, ITabCloseArgs, ITabMovedArgs, TabBar
+  TabBar
 } from './tabbar';
 
 import {
@@ -263,7 +263,7 @@ class TabPanel extends Widget {
   /**
    * Handle the `currentChanged` signal from the tab bar.
    */
-  private _onCurrentChanged(sender: TabBar, args: ICurrentChangedArgs): void {
+  private _onCurrentChanged(sender: TabBar, args: TabBar.ICurrentChangedArgs): void {
     let prev = args.previousTitle;
     let curr = args.currentTitle;
     if (prev) (prev.owner as Widget).hide();
@@ -274,14 +274,14 @@ class TabPanel extends Widget {
   /**
    * Handle the `tabCloseRequested` signal from the tab bar.
    */
-  private _onTabCloseRequested(sender: TabBar, args: ITabCloseArgs): void {
+  private _onTabCloseRequested(sender: TabBar, args: TabBar.ITabCloseRequestedArgs): void {
     (args.title.owner as Widget).close();
   }
 
   /**
    * Handle the `tabMoved` signal from the tab bar.
    */
-  private _onTabMoved(sender: TabBar, args: ITabMovedArgs): void {
+  private _onTabMoved(sender: TabBar, args: TabBar.ITabMovedArgs): void {
     this._stackedPanel.insertWidget(args.toIndex, args.title.owner as Widget);
   }
 
