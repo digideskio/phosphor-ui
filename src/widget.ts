@@ -750,6 +750,7 @@ namespace Widget {
     DisallowLayout = 0x10
   }
 
+  // TODO - should this be an instance method?
   /**
    * Attach a widget to a host DOM node.
    *
@@ -777,6 +778,7 @@ namespace Widget {
     sendMessage(widget, WidgetMessage.AfterAttach);
   }
 
+  // TODO - should this be an instance method?
   /**
    * Detach the widget from its host DOM node.
    *
@@ -1074,6 +1076,7 @@ abstract class Layout implements IIterable<Widget>, IDisposable {
 }
 
 
+// TODO should this be in the Widget namespace?
 /**
  * A collection of stateless messages related to widgets.
  */
@@ -1195,6 +1198,7 @@ namespace WidgetMessage {
 }
 
 
+// TODO should this be in the Widget namespace?
 /**
  * A message class for child related messages.
  */
@@ -1226,6 +1230,7 @@ class ChildMessage extends Message {
 }
 
 
+// TODO should this be in the Widget namespace?
 /**
  * A message class for `'resize'` messages.
  */
