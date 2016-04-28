@@ -268,6 +268,7 @@ class TabPanel extends Widget {
     let curr = args.currentTitle;
     if (prev) (prev.owner as Widget).hide();
     if (curr) (curr.owner as Widget).show();
+    if (curr) (curr.owner as Widget).focus();
   }
 
   /**
