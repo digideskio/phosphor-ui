@@ -513,6 +513,16 @@ class TabBar extends Widget {
   }
 
   /**
+   * A read-only sequence of the titles in the tab bar.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get titles(): ISequence<Title> {
+    return this._titles;
+  }
+
+  /**
    * Get the currently selected tab node.
    *
    * #### Notes
@@ -531,16 +541,6 @@ class TabBar extends Widget {
    */
   set currentTabNode(value: HTMLElement) {
     this.currentIndex = indexOf(this._tabs, value);
-  }
-
-  /**
-   * A read-only sequence of the titles in the tab bar.
-   *
-   * #### Notes
-   * This is a read-only property.
-   */
-  get titles(): ISequence<Title> {
-    return this._titles;
   }
 
   /**
