@@ -484,16 +484,6 @@ class Menu extends Widget {
   }
 
   /**
-   * A read-only sequence of the menu item nodes in the menu.
-   *
-   * #### Notes
-   * This is a read-only property.
-   */
-  get itemNodes(): ISequence<HTMLElement> {
-    return this._nodes;
-  }
-
-  /**
    * A read-only sequence of the menu items in the menu.
    *
    * #### Notes
@@ -501,27 +491,6 @@ class Menu extends Widget {
    */
   get items(): ISequence<MenuItem> {
     return this._items;
-  }
-
-  /**
-   * Get the currently active menu item node.
-   *
-   * #### Notes
-   * This will be `null` if no menu item is active.
-   */
-  get activeItemNode(): HTMLElement {
-    let i = this._activeIndex;
-    return i !== -1 ? this._nodes.at(i) : null;
-  }
-
-  /**
-   * Set the currently active menu item node.
-   *
-   * #### Notes
-   * If the node does not exist, the node will be set to `null`.
-   */
-  set activeItemNode(value: HTMLElement) {
-    this.activeIndex = indexOf(this._nodes, value);
   }
 
   /**
@@ -1119,7 +1088,7 @@ class Menu extends Widget {
     menu._parentMenu = this;
 
     // Open the submenu at the active node.
-    Private.openSubmenu(menu, this.activeItemNode);
+    Private.openSubmenu(menu, this._nodes.at(this._activeIndex));
 
     // Activate the first item if desired.
     if (activateFirst) Private.activateFirst(menu);
