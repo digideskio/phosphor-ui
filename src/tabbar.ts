@@ -50,7 +50,7 @@ import {
 } from './title';
 
 import {
-  Widget
+  Widget, WidgetFlag
 } from './widget';
 
 
@@ -163,7 +163,7 @@ class TabBar extends Widget {
   constructor(options: TabBar.IOptions = {}) {
     super();
     this.addClass(TAB_BAR_CLASS);
-    this.setFlag(Widget.Flag.DisallowLayout);
+    this.setFlag(WidgetFlag.DisallowLayout);
     this._renderer = options.renderer || TabBar.ContentRenderer.instance;
   }
 

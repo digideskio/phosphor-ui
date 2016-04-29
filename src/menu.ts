@@ -34,7 +34,7 @@ import {
 } from './domutil';
 
 import {
-  Widget, WidgetMessage
+  Widget, WidgetFlag, WidgetMessage
 } from './widget';
 
 
@@ -418,7 +418,7 @@ class Menu extends Widget {
   constructor(options: Menu.IOptions = {}) {
     super();
     this.addClass(MENU_CLASS);
-    this.setFlag(Widget.Flag.DisallowLayout);
+    this.setFlag(WidgetFlag.DisallowLayout);
     this._renderer = options.renderer || Menu.ContentRenderer.instance;
   }
 
