@@ -18,7 +18,7 @@ import {
 } from 'phosphor-core/lib/mutation';
 
 import {
-  indexOf
+  findIndex, indexOf
 } from 'phosphor-core/lib/searching';
 
 import {
@@ -32,6 +32,10 @@ import {
 import {
   Vector
 } from 'phosphor-core/lib/vector';
+
+import {
+  hitTest
+} from './domutil';
 
 import {
   Menu, MenuItem
@@ -362,6 +366,43 @@ class MenuBar extends Widget {
   }
 
   /**
+   * Handle the DOM events for the menu bar.
+   *
+   * @param event - The DOM event sent to the menu bar.
+   *
+   * #### Notes
+   * This method implements the DOM `EventListener` interface and is
+   * called in response to events on the menu bar's DOM nodes. It
+   * should not be called directly by user code.
+   */
+  handleEvent(event: Event): void {
+    switch (event.type) {
+    case 'mousemove':
+      this._evtMouseMove(event as MouseEvent);
+      break;
+    case 'mouseleave':
+      this._evtMouseLeave(event as MouseEvent);
+      break;
+    }
+  }
+
+  /**
+   * A message handler invoked on an `'after-attach'` message.
+   */
+  protected onAfterAttach(msg: Message): void {
+    this.node.addEventListener('mousemove', this);
+    this.node.addEventListener('mouseleave', this);
+  }
+
+  /**
+   * A message handler invoked on a `'before-detach'` message.
+   */
+  protected onBeforeDetach(msg: Message): void {
+    this.node.removeEventListener('mousemove', this);
+    this.node.removeEventListener('mouseleave', this);
+  }
+
+  /**
    * A message handler invoked on an `'update-request'` message.
    */
   protected onUpdateRequest(msg: Message): void {
@@ -383,6 +424,33 @@ class MenuBar extends Widget {
       }
     }
     dirtyMenus.clear();
+  }
+
+  /**
+   * Handle the `'mousemove'` event for the menu bar.
+   */
+  private _evtMouseMove(event: MouseEvent): void {
+    // Check if the mouse is over one of the menu items.
+    let x = event.clientX;
+    let y = event.clientY;
+    let i = findIndex(this._nodes, node => hitTest(node, x, y));
+
+    // Bail early if the active index will not change.
+    if (i === this._activeIndex) {
+      return;
+    }
+
+    // Update the active index to the hovered item.
+    this.activeIndex = i;
+  }
+
+  /**
+   * Handle the `'mouseleave'` event for the menu bar.
+   */
+  private _evtMouseLeave(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.activeIndex = -1;
   }
 
   /**
