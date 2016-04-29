@@ -516,4 +516,4 @@ namespace MenuBar {
 
 
 // Define the signals for the `MenuBar` class.
-defineSignal(Menu.prototype, 'triggered');
+defineSignal(MenuBar.prototype, 'triggered');
