@@ -427,13 +427,11 @@ class Widget implements IDisposable, IMessageHandler {
   /**
    * Send a `'close-request'` message to the widget.
    *
-   * @param reason - The reason for the close request, if applicable.
-   *
    * #### Notes
-   * This is a simple convenience method for sending a close message.
+   * This is a simple convenience method for sending the message.
    */
-  close(reason = ''): void {
-    sendMessage(this, new CloseMessage(reason));
+  close(): void {
+    sendMessage(this, WidgetMessage.CloseRequest);
   }
 
   /**
@@ -1189,36 +1187,16 @@ namespace WidgetMessage {
    */
   export
   const BlurRequest = new ConflatableMessage('blur-request');
-}
-
-
-// TODO should this be in the Widget namespace?
-/**
- * A message class for close request messages.
- */
-export
-class CloseMessage extends Message {
-  /**
-   * Construct a new close request message.
-   *
-   * @param reason - The reason for the close request.
-   */
-  constructor(reason: string) {
-    super('close-request');
-    this._reason = reason;
-  }
 
   /**
-   * The reason for the close request.
+   * A singleton conflatable `'close-request'` message.
    *
    * #### Notes
-   * This is a read-only property.
+   * This message should be dispatched to a widget when it should close
+   * and remove itself from the widget hierarchy.
    */
-  get child(): string {
-    return this._reason;
-  }
-
-  private _reason: string;
+  export
+  const CloseRequest = new ConflatableMessage('close-request');
 }
 
 
