@@ -61,6 +61,11 @@ const MENU_BAR_CLASS = 'p-MenuBar';
 const CONTENT_CLASS = 'p-MenuBar-content';
 
 /**
+ * The class name added to an open menu bar menu.
+ */
+const MENU_CLASS = 'p-MenuBar-menu';
+
+/**
  * The class name added to a menu bar item node.
  */
 const ITEM_CLASS = 'p-MenuBar-item';
@@ -113,7 +118,7 @@ class MenuBar extends Widget {
    * Dispose of the resources held by the widget.
    */
   dispose(): void {
-    // TODO close menu
+    this._closeChildMenu();
     this._menus.clear();
     this._nodes.clear();
     this._renderer = null;
@@ -246,7 +251,8 @@ class MenuBar extends Widget {
    * If the menu is already added to the menu bar, it will be moved.
    */
   insertMenu(index: number, menu: Menu): void {
-    // TODO close/reset
+    // Close the child menu before making changes.
+    this._closeChildMenu();
 
     // Look up the index of the menu.
     let i = indexOf(this._menus, menu);
@@ -264,16 +270,18 @@ class MenuBar extends Widget {
       this._nodes.insert(j, node);
       this._menus.insert(j, menu);
 
+      // Add the styling class to the menu.
+      menu.addClass(MENU_CLASS);
+
       // Look up the next sibling node.
       let ref = j + 1 < this._nodes.length ? this._nodes.at(j + 1) : null;
 
       // Insert the item node into the content node.
       this.contentNode.insertBefore(node, ref);
 
-      // Connect to the menu triggered signal.
+      // Connect to the menu signals.
       menu.triggered.connect(this._onMenuTriggered, this);
-
-      // Connect to the title changed signal.
+      menu.aboutToClose.connect(this._onMenuAboutToClose, this);
       menu.title.changed.connect(this._onTitleChanged, this);
 
       // There is nothing more to do.
@@ -314,7 +322,8 @@ class MenuBar extends Widget {
       return;
     }
 
-    // TODO close/reset
+    // Close the child menu before making changes.
+    this._closeChildMenu();
 
     // Look up the node and menu.
     let node = this._nodes.at(i);
@@ -327,14 +336,16 @@ class MenuBar extends Widget {
     // Remove the menu from the dirty set.
     this._dirtyMenus.delete(menu);
 
-    // Disconnect from the menu triggered signal.
-    menu.triggered.connect(this._onMenuTriggered, this);
-
-    // Disconnect from the title changed signal.
+    // Disconnect from the menu signals.
+    menu.triggered.disconnect(this._onMenuTriggered, this);
+    menu.aboutToClose.disconnect(this._onMenuAboutToClose, this);
     menu.title.changed.disconnect(this._onTitleChanged, this);
 
     // Remove the node from the content node.
     this.contentNode.removeChild(node);
+
+    // Remove the styling class from the menu.
+    menu.removeClass(MENU_CLASS);
   }
 
   /**
@@ -346,12 +357,15 @@ class MenuBar extends Widget {
       return;
     }
 
-    // TODO close/reset
+    // Close the child menu before making changes.
+    this._closeChildMenu();
 
-    // Disconnect from the menu triggered and title changed signals.
+    // Disconnect from the menu signals and remove the styling class.
     each(this._menus, menu => {
       menu.triggered.disconnect(this._onMenuTriggered, this);
+      menu.aboutToClose.disconnect(this._onMenuAboutToClose, this);
       menu.title.changed.disconnect(this._onTitleChanged, this);
+      menu.removeClass(MENU_CLASS);
     });
 
     // Clear the node and menus vectors.
@@ -377,11 +391,18 @@ class MenuBar extends Widget {
    */
   handleEvent(event: Event): void {
     switch (event.type) {
+    case 'mousedown':
+      this._evtMouseDown(event as MouseEvent);
+      break;
     case 'mousemove':
       this._evtMouseMove(event as MouseEvent);
       break;
     case 'mouseleave':
       this._evtMouseLeave(event as MouseEvent);
+      break;
+    case 'contextmenu':
+      event.preventDefault();
+      event.stopPropagation();
       break;
     }
   }
@@ -390,16 +411,21 @@ class MenuBar extends Widget {
    * A message handler invoked on an `'after-attach'` message.
    */
   protected onAfterAttach(msg: Message): void {
+    this.node.addEventListener('mousedown', this);
     this.node.addEventListener('mousemove', this);
     this.node.addEventListener('mouseleave', this);
+    this.node.addEventListener('contextmenu', this);
   }
 
   /**
    * A message handler invoked on a `'before-detach'` message.
    */
   protected onBeforeDetach(msg: Message): void {
+    this.node.removeEventListener('mousedown', this);
     this.node.removeEventListener('mousemove', this);
     this.node.removeEventListener('mouseleave', this);
+    this.node.removeEventListener('contextmenu', this);
+    this._closeChildMenu();
   }
 
   /**
@@ -427,6 +453,48 @@ class MenuBar extends Widget {
   }
 
   /**
+   * Handle the `'mousedown'` event for the menu bar.
+   */
+  private _evtMouseDown(event: MouseEvent): void {
+    // Bail if the mouse press was not on the menu bar. This can occur
+    // when the document listener is installed for an active menu bar.
+    let x = event.clientX;
+    let y = event.clientY;
+    if (!hitTest(this.node, x, y)) {
+      return;
+    }
+
+    // Stop the propagation of the event. Immediate propagation is
+    // also stopped so that an open menu does not handle the event.
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    // Check if the mouse is over one of the menu items.
+    let i = findIndex(this._nodes, node => hitTest(node, x, y));
+
+    // If the press was not on an item, close the child menu.
+    if (i === -1) {
+      this._closeChildMenu();
+      return;
+    }
+
+    // If the press was not the left mouse button, do nothing further.
+    if (event.button !== 0) {
+      return;
+    }
+
+    // Otherwise, toggle the open state of the child menu.
+    if (this._childMenu) {
+      this._closeChildMenu();
+      this.activeIndex = i;
+    } else {
+      this.activeIndex = i;
+      this._openChildMenu();
+    }
+  }
+
+  /**
    * Handle the `'mousemove'` event for the menu bar.
    */
   private _evtMouseMove(event: MouseEvent): void {
@@ -440,16 +508,96 @@ class MenuBar extends Widget {
       return;
     }
 
+    // Bail early if a child menu is open and the mouse is not over
+    // an item. This allows the child menu to be kept open when the
+    // mouse is over the empty part of the menu bar.
+    if (i === -1 && this._childMenu) {
+      return;
+    }
+
     // Update the active index to the hovered item.
     this.activeIndex = i;
+
+    // Open the new menu if a menu is already open.
+    if (this._childMenu) {
+      this._openChildMenu();
+    }
   }
 
   /**
    * Handle the `'mouseleave'` event for the menu bar.
    */
   private _evtMouseLeave(event: MouseEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
+    // Reset the active index if there is no open menu.
+    if (!this._childMenu) {
+      this.activeIndex = -1;
+    }
+  }
+
+  /**
+   * Open the child menu at the active index immediately.
+   *
+   * If a different child menu is already open, it will be closed,
+   * even if there is no active menu.
+   */
+  private _openChildMenu(): void {
+    // If there is no active menu, close the current menu.
+    let newMenu = this.activeMenu;
+    if (!newMenu) {
+      this._closeChildMenu();
+      return;
+    }
+
+    // Bail, if there is no effective menu change.
+    let oldMenu = this._childMenu;
+    if (oldMenu === newMenu) {
+      return;
+    }
+
+    // Swap the internal menu reference.
+    this._childMenu = newMenu;
+
+    // Close the current menu, or setup for the new menu.
+    if (oldMenu) {
+      oldMenu.close();
+    } else {
+      this.addClass(ACTIVE_CLASS);
+      document.addEventListener('mousedown', this, true);
+    }
+
+    // Get the positioning data for the new menu.
+    let node = this._nodes.at(this._activeIndex);
+    let { left, bottom } = node.getBoundingClientRect();
+
+    // Open the new menu at the computed location.
+    newMenu.open(left, bottom, { forceX: true, forceY: true });
+  }
+
+  /**
+   * Close the child menu immediately.
+   *
+   * This is a no-op if a child menu is not open.
+   */
+  private _closeChildMenu(): void {
+    // Bail if no child menu is open.
+    if (!this._childMenu) {
+      return;
+    }
+
+    // Remove the active class from the menu bar.
+    this.removeClass(ACTIVE_CLASS);
+
+    // Remove the document listeners.
+    document.removeEventListener('mousedown', this, true);
+
+    // Clear the internal menu reference.
+    let menu = this._childMenu;
+    this._childMenu = null;
+
+    // Close the menu.
+    menu.close();
+
+    // Reset the active index.
     this.activeIndex = -1;
   }
 
@@ -461,6 +609,28 @@ class MenuBar extends Widget {
   }
 
   /**
+   * Handle the `aboutToClose` signal of a menu.
+   */
+  private _onMenuAboutToClose(sender: Menu): void {
+    // Bail if the sender is not the child menu.
+    if (sender !== this._childMenu) {
+      return;
+    }
+
+    // Remove the active class from the menu bar.
+    this.removeClass(ACTIVE_CLASS);
+
+    // Remove the document listeners.
+    document.removeEventListener('mousedown', this, true);
+
+    // Clear the internal menu reference.
+    this._childMenu = null;
+
+    // Reset the active index.
+    this.activeIndex = -1;
+  }
+
+  /**
    * Handle the `changed` signal of a title object.
    */
   private _onTitleChanged(sender: Title): void {
@@ -469,11 +639,16 @@ class MenuBar extends Widget {
   }
 
   private _activeIndex = -1;
+  private _childMenu: Menu = null;
   private _menus = new Vector<Menu>();
   private _dirtyMenus = new Set<Menu>();
   private _nodes = new Vector<HTMLElement>();
   private _renderer: MenuBar.IContentRenderer;
 }
+
+
+// Define the signals for the `MenuBar` class.
+defineSignal(MenuBar.prototype, 'triggered');
 
 
 /**
@@ -581,7 +756,3 @@ namespace MenuBar {
     const instance = new ContentRenderer();
   }
 }
-
-
-// Define the signals for the `MenuBar` class.
-defineSignal(MenuBar.prototype, 'triggered');
