@@ -1061,7 +1061,7 @@ class Menu extends Widget {
    * Open the child menu at the active index immediately.
    *
    * If a different child menu is already open, it will be closed,
-   * event if the active item is not a valid submenu.
+   * even if the active item is not a valid submenu.
    */
   private _openChildMenu(activateFirst = false): void {
     // If the item is not a valid submenu, close the child menu.
@@ -1219,7 +1219,7 @@ namespace Menu {
    *
    * #### Notes
    * User code can implement a custom renderer when the default
-   * content created by the menu  is insufficient.
+   * content created by the menu is insufficient.
    */
   export
   interface IContentRenderer {
@@ -1231,7 +1231,7 @@ namespace Menu {
      * #### Notes
      * The data in the node should be uninitialized.
      *
-     * The `updateTabNode` method will be called for initialization.
+     * The `updateItemNode` method will be called for initialization.
      */
     createItemNode(): HTMLElement;
 
