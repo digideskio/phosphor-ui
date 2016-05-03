@@ -446,6 +446,15 @@ class Menu extends Widget {
   triggered: ISignal<Menu, MenuItem>;
 
   /**
+   * A signal emitted just before the menu is closed.
+   *
+   * #### Notes
+   * This signal is emitted when the menu receives a `'close-request'`
+   * message, provided it is attached to the DOM.
+   */
+  aboutToClose: ISignal<Menu, void>;
+
+  /**
    * Get the parent menu of the menu.
    *
    * #### Notes
@@ -876,6 +885,11 @@ class Menu extends Widget {
       parentMenu.focus();
     }
 
+    // Emit the `aboutToClose` signal if the menu is attached.
+    if (this.isAttached) {
+      this.aboutToClose.emit(void 0);
+    }
+
     // Finish closing the menu.
     super.onCloseRequest(msg);
   }
@@ -1164,6 +1178,7 @@ class Menu extends Widget {
 
 // Define the signals for the `Menu` class.
 defineSignal(Menu.prototype, 'triggered');
+defineSignal(Menu.prototype, 'aboutToClose');
 
 
 /**
