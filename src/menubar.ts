@@ -162,6 +162,18 @@ class MenuBar extends Widget {
   }
 
   /**
+   * Get the child menu of the menu bar.
+   *
+   * #### Notes
+   * This will be `null` if the menu bar does not have an open menu.
+   *
+   * This is a read-only property.
+   */
+  get childMenu(): Menu {
+    return this._childMenu;
+  }
+
+  /**
    * Get the currently active menu.
    *
    * #### Notes
