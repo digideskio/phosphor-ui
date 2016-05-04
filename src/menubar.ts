@@ -99,6 +99,7 @@ class MenuBar extends Widget {
     let content = document.createElement('ul');
     content.className = CONTENT_CLASS;
     node.appendChild(content);
+    node.tabIndex = -1;
     return node;
   }
 
@@ -236,6 +237,20 @@ class MenuBar extends Widget {
 
     // Update the active index.
     this._activeIndex = i;
+  }
+
+  /**
+   * Open the active menu and activate its first menu item.
+   *
+   * #### Notes
+   * If there is no active menu, this is a no-op.
+   */
+  openActiveMenu(): void {
+    if (this._activeIndex === -1) {
+      return;
+    }
+    this._openChildMenu();
+    this._childMenu.activeIndex = 0; // TODO first selectable instead of 0?
   }
 
   /**
@@ -403,6 +418,9 @@ class MenuBar extends Widget {
    */
   handleEvent(event: Event): void {
     switch (event.type) {
+    case 'keydown':
+      this._evtKeyDown(event as KeyboardEvent);
+      break;
     case 'mousedown':
       this._evtMouseDown(event as MouseEvent);
       break;
@@ -423,6 +441,7 @@ class MenuBar extends Widget {
    * A message handler invoked on an `'after-attach'` message.
    */
   protected onAfterAttach(msg: Message): void {
+    this.node.addEventListener('keydown', this);
     this.node.addEventListener('mousedown', this);
     this.node.addEventListener('mousemove', this);
     this.node.addEventListener('mouseleave', this);
@@ -433,6 +452,7 @@ class MenuBar extends Widget {
    * A message handler invoked on a `'before-detach'` message.
    */
   protected onBeforeDetach(msg: Message): void {
+    this.node.removeEventListener('keydown', this);
     this.node.removeEventListener('mousedown', this);
     this.node.removeEventListener('mousemove', this);
     this.node.removeEventListener('mouseleave', this);
@@ -462,6 +482,42 @@ class MenuBar extends Widget {
       }
     }
     dirtyMenus.clear();
+  }
+
+  /**
+   * Handle the `'keydown'` event for the menu bar.
+   */
+  private _evtKeyDown(event: KeyboardEvent): void {
+    switch (event.keyCode) {
+    case 13: // Enter
+    case 38: // Up Arrow
+    case 40: // Down Arrow
+      event.preventDefault();
+      event.stopPropagation();
+      this.openActiveMenu();
+      break;
+    case 27: // Escape
+      event.preventDefault();
+      event.stopPropagation();
+      this._closeChildMenu();
+      this.activeIndex = -1;
+      this.blur();
+      break;
+    case 37: // Left Arrow
+      event.preventDefault();
+      event.stopPropagation();
+      let i1 = this._activeIndex;
+      let n1 = this._menus.length;
+      this.activeIndex = i1 === 0 ? n1 - 1 : i1 - 1;
+      break;
+    case 39: // Right Arrow
+      event.preventDefault();
+      event.stopPropagation();
+      let i2 = this._activeIndex;
+      let n2 = this._menus.length;
+      this.activeIndex = i2 === n2 - 1 ? 0 : i2 + 1;
+      break;
+    }
   }
 
   /**
