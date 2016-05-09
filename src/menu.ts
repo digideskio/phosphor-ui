@@ -876,6 +876,7 @@ class Menu extends Widget {
       this._childIndex = -1;
       this._childMenu = null;
       childMenu._parentMenu = null;
+      childMenu.edgeRequested.disconnect(this._onEdgeRequested, this);
       childMenu.close();
     }
 
@@ -1142,7 +1143,10 @@ class Menu extends Widget {
    * This is a no-op if a child menu is not open.
    */
   private _closeChildMenu(): void {
-    if (this._childMenu) this._childMenu.close();
+    if (this._childMenu) {
+      this._childMenu.edgeRequested.disconnect(this._onEdgeRequested, this);
+      this._childMenu.close();
+    }
   }
 
   /**
