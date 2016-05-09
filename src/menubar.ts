@@ -310,6 +310,7 @@ class MenuBar extends Widget {
       menu.triggered.connect(this._onMenuTriggered, this);
       menu.aboutToClose.connect(this._onMenuAboutToClose, this);
       menu.title.changed.connect(this._onTitleChanged, this);
+      menu.edgeRequested.connect(this._onEdgeRequested, this);
 
       // There is nothing more to do.
       return;
@@ -392,6 +393,7 @@ class MenuBar extends Widget {
       menu.triggered.disconnect(this._onMenuTriggered, this);
       menu.aboutToClose.disconnect(this._onMenuAboutToClose, this);
       menu.title.changed.disconnect(this._onTitleChanged, this);
+      menu.edgeRequested.disconnect(this._onEdgeRequested, this);
       menu.removeClass(MENU_CLASS);
     });
 
@@ -704,6 +706,23 @@ class MenuBar extends Widget {
   private _onTitleChanged(sender: Title): void {
     this._dirtyMenus.add(sender.owner as Menu);
     this.update();
+  }
+
+  /**
+   * Handle the `edgeRequested` signal of a child menu.
+   */
+  private _onEdgeRequested(sender: Menu, args: 'left' | 'right'): void {
+    let i = this._activeIndex;
+    let n = this._menus.length;
+    switch (args) {
+    case 'left':
+      this.activeIndex = i === 0 ? n - 1 : i - 1;
+      break;
+    case 'right':
+      this.activeIndex = i === n - 1 ? 0 : i + 1;
+      break;
+    }
+    this.openActiveMenu();
   }
 
   private _activeIndex = -1;
