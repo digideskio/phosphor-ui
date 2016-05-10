@@ -30,7 +30,7 @@
     "clean": "npm run clean:src && npm run clean:test",
     "build:example": "tsc --project example/_tsconfig.json && webpack --config example/_webpack.conf.js",
     "build:src": "tsc --project src/_tsconfig.json",
-    "build:test": "tsc --project test/src/_tsconfig.json",
+    "build:test": "tsc --project test/src",
     "build": "npm run build:src && npm run build:test",
     "test:chrome": "echo 'no tests defined'",
     "test:coverage": "echo 'no tests defined'",
