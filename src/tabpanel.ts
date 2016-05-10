@@ -7,11 +7,11 @@
 |----------------------------------------------------------------------------*/
 import {
   indexOf
-} from 'phosphor-core/lib/searching';
+} from 'phosphor-core/lib/algorithm/searching';
 
 import {
   ISequence
-} from 'phosphor-core/lib/sequence';
+} from 'phosphor-core/lib/algorithm/sequence';
 
 import {
   BoxLayout

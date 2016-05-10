@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 import {
   SequenceOrArrayLike, asSequence
-} from 'phosphor-core/lib/sequence';
+} from 'phosphor-core/lib/algorithm/sequence';
 
 
 /**

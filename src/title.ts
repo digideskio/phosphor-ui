@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 import {
   ISignal, defineSignal
-} from 'phosphor-core/lib/signaling';
+} from 'phosphor-core/lib/patterns/signaling';
 
 
 /**

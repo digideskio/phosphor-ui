@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "The low-level ui functionality of the PhosphorJS project.",
   "dependencies": {
-    "phosphor-core": "^0.6.0"
+    "phosphor-core": "^0.7.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.9",

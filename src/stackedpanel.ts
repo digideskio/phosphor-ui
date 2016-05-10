@@ -7,11 +7,11 @@
 |----------------------------------------------------------------------------*/
 import {
   Message, sendMessage
-} from 'phosphor-core/lib/messaging';
+} from 'phosphor-core/lib/patterns/messaging';
 
 import {
   ISignal, defineSignal
-} from 'phosphor-core/lib/signaling';
+} from 'phosphor-core/lib/patterns/signaling';
 
 import {
   IBoxSizing, boxSizing, sizeLimits

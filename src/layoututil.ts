@@ -7,11 +7,11 @@
 |----------------------------------------------------------------------------*/
 import {
   sendMessage
-} from 'phosphor-core/lib/messaging';
+} from 'phosphor-core/lib/patterns/messaging';
 
 import {
   AttachedProperty
-} from 'phosphor-core/lib/properties';
+} from 'phosphor-core/lib/patterns/properties';
 
 import {
   ResizeMessage, Widget

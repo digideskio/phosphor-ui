@@ -6,36 +6,36 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  IDisposable
-} from 'phosphor-core/lib/disposable';
-
-import {
   each
-} from 'phosphor-core/lib/iteration';
-
-import {
-  Message
-} from 'phosphor-core/lib/messaging';
+} from 'phosphor-core/lib/algorithm/iteration';
 
 import {
   move
-} from 'phosphor-core/lib/mutation';
+} from 'phosphor-core/lib/algorithm/mutation';
 
 import {
   findIndex, indexOf
-} from 'phosphor-core/lib/searching';
+} from 'phosphor-core/lib/algorithm/searching';
 
 import {
   ISequence
-} from 'phosphor-core/lib/sequence';
-
-import {
-  ISignal, defineSignal
-} from 'phosphor-core/lib/signaling';
+} from 'phosphor-core/lib/algorithm/sequence';
 
 import {
   Vector
-} from 'phosphor-core/lib/vector';
+} from 'phosphor-core/lib/collections/vector';
+
+import {
+  IDisposable
+} from 'phosphor-core/lib/patterns/disposable';
+
+import {
+  Message
+} from 'phosphor-core/lib/patterns/messaging';
+
+import {
+  ISignal, defineSignal
+} from 'phosphor-core/lib/patterns/signaling';
 
 import {
   overrideCursor
