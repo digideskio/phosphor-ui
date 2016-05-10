@@ -39,15 +39,15 @@ import {
 
 import {
   overrideCursor
-} from './cssutil';
+} from '../common/cssutil';
 
 import {
   hitTest
-} from './domutil';
+} from '../common/domutil';
 
 import {
   Title
-} from './title';
+} from '../common/title';
 
 import {
   Widget, WidgetFlag

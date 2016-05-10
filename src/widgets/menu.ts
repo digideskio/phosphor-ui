@@ -31,7 +31,7 @@ import {
 
 import {
   boxSizing, hitTest
-} from './domutil';
+} from '../common/domutil';
 
 import {
   Widget, WidgetFlag, WidgetMessage

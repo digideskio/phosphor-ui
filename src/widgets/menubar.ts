@@ -35,15 +35,15 @@ import {
 
 import {
   hitTest
-} from './domutil';
+} from '../common/domutil';
+
+import {
+  Title
+} from '../common/title';
 
 import {
   Menu, MenuItem
 } from './menu';
-
-import {
-  Title
-} from './title';
 
 import {
   Widget, WidgetFlag

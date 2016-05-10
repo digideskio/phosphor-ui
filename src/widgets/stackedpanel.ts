@@ -15,7 +15,7 @@ import {
 
 import {
   IBoxSizing, boxSizing, sizeLimits
-} from './domutil';
+} from '../common/domutil';
 
 import {
   prepareGeometry, resetGeometry, setGeometry

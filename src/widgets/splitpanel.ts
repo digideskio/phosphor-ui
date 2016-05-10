@@ -39,15 +39,15 @@ import {
 
 import {
   BoxSizer, boxCalc
-} from './boxengine';
+} from '../common/boxengine';
 
 import {
   overrideCursor
-} from './cssutil';
+} from '../common/cssutil';
 
 import {
   IBoxSizing, boxSizing, sizeLimits
-} from './domutil';
+} from '../common/domutil';
 
 import {
   prepareGeometry, resetGeometry, setGeometry

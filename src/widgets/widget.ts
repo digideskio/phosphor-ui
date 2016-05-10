@@ -28,7 +28,7 @@ import {
 
 import {
   Title
-} from './title';
+} from '../common/title';
 
 
 /**
