@@ -6,19 +6,23 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 import {
-  each
-} from 'phosphor-core/lib/iteration';
+  Menu, MenuItem
+} from '../lib/menu';
 
 import {
-  Menu, MenuItem, MenuTemplate
-} from '../lib/menu';
+  MenuBar
+} from '../lib/menubar';
+
+import {
+  Widget
+} from '../lib/widget';
 
 import '../styles/base.css';
 
 import './index.css';
 
 
-const MENU_TEMPLATE: MenuTemplate = [
+const MENU_TEMPLATE: Menu.Template = [
   {
     text: '&&Copy',
     icon: 'fa fa-copy',
@@ -83,6 +87,28 @@ const MENU_TEMPLATE: MenuTemplate = [
       {
         text: 'Four',
         command: 'four'
+      },
+      {
+        text: 'Again...',
+        type: 'submenu',
+        submenu: [
+          {
+            text: 'One',
+            command: 'one'
+          },
+          {
+            text: 'Two',
+            command: 'two'
+          },
+          {
+            text: 'Three',
+            command: 'three'
+          },
+          {
+            text: 'Four',
+            command: 'four'
+          }
+        ]
       }
     ]
   },
@@ -97,21 +123,57 @@ const MENU_TEMPLATE: MenuTemplate = [
 ];
 
 
+function onTriggered(sender: MenuBar | Menu, item: MenuItem): void {
+  if (item.command === 'save-on-exit') {
+    item.checked = !item.checked;
+  }
+  console.log('triggered:', item.command);
+}
+
+
 function main(): void {
 
-  let menu = Menu.fromTemplate(MENU_TEMPLATE);
+  let menu1 = Menu.fromTemplate(MENU_TEMPLATE);
+  menu1.title.text = 'File';
 
-  menu.triggered.connect((sender, item) => {
-    if (item.command === 'save-on-exit') {
-      item.checked = !item.checked;
-    }
-    console.log('triggered:', item.command);
-  });
+  let menu2 = Menu.fromTemplate(MENU_TEMPLATE);
+  menu2.title.text = 'Edit';
+
+  let menu3 = Menu.fromTemplate(MENU_TEMPLATE);
+  menu3.title.text = 'View';
+
+  let ctxt = Menu.fromTemplate(MENU_TEMPLATE);
+
+  let bar = new MenuBar();
+  bar.addMenu(menu1);
+  bar.addMenu(menu2);
+  bar.addMenu(menu3);
+
+  bar.triggered.connect(onTriggered);
+
+  ctxt.triggered.connect(onTriggered);
 
   document.addEventListener('contextmenu', (event: MouseEvent) => {
     event.preventDefault();
-    menu.open(event.clientX, event.clientY);
+    ctxt.open(event.clientX, event.clientY);
   });
+
+  document.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.keyCode === 18) { // Alt
+      if (bar.childMenu) {
+        bar.childMenu.close();
+      } else if (bar.activeIndex >= 0) {
+        bar.activeIndex = -1;
+        bar.blur();
+      } else {
+        bar.activeIndex = 0;
+        bar.focus();
+      }
+      event.preventDefault();
+    }
+  });
+
+  Widget.attach(bar, document.body);
 }
 
 

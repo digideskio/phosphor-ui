@@ -446,6 +446,29 @@ class Menu extends Widget {
   triggered: ISignal<Menu, MenuItem>;
 
   /**
+   * A signal emitted just before the menu is closed.
+   *
+   * #### Notes
+   * This signal is emitted when the menu receives a `'close-request'`
+   * message, provided it is attached to the DOM.
+   */
+  aboutToClose: ISignal<Menu, void>;
+
+  /**
+   * A signal emitted when a new menu is requested by the user.
+   *
+   * #### Notes
+   * This signal is emitted whenever the user presses the right or left
+   * arrow keys, and a submenu cannot be opened or closed in response.
+   *
+   * This signal is useful when implementing menu bars in order to open
+   * the next or previous menu in response to a user key press.
+   *
+   * This signal is only emitted for the root menu in a hierarchy.
+   */
+  menuRequested: ISignal<Menu, 'next' | 'previous'>;
+
+  /**
    * Get the parent menu of the menu.
    *
    * #### Notes
@@ -467,6 +490,34 @@ class Menu extends Widget {
    */
   get childMenu(): Menu {
     return this._childMenu;
+  }
+
+  /**
+   * Find the root menu of this menu hierarchy.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get rootMenu(): Menu {
+    let menu: Menu = this;
+    while (menu._parentMenu) {
+      menu = menu._parentMenu;
+    }
+    return menu;
+  }
+
+  /**
+   * Find the leaf menu of this menu hierarchy.
+   *
+   * #### Notes
+   * This is a read-only property.
+   */
+  get leafMenu(): Menu {
+    let menu: Menu = this;
+    while (menu._childMenu) {
+      menu = menu._childMenu;
+    }
+    return menu;
   }
 
   /**
@@ -876,6 +927,11 @@ class Menu extends Widget {
       parentMenu.focus();
     }
 
+    // Emit the `aboutToClose` signal if the menu is attached.
+    if (this.isAttached) {
+      this.aboutToClose.emit(void 0);
+    }
+
     // Finish closing the menu.
     super.onCloseRequest(msg);
   }
@@ -901,7 +957,11 @@ class Menu extends Widget {
     case 37: // Left Arrow
       event.preventDefault();
       event.stopPropagation();
-      if (this._parentMenu) this.close();
+      if (this._parentMenu) {
+        this.close();
+      } else {
+        this.menuRequested.emit('previous');
+      }
       break;
     case 38: // Up Arrow
       event.preventDefault();
@@ -912,7 +972,11 @@ class Menu extends Widget {
       event.preventDefault();
       event.stopPropagation();
       let item = this.activeItem;
-      if (item && item.type === 'submenu') this.triggerActiveItem();
+      if (item && item.type === 'submenu') {
+        this.triggerActiveItem();
+      } else {
+        this.rootMenu.menuRequested.emit('next');
+      }
       break;
     case 40: // Down Arrow
       event.preventDefault();
@@ -1061,7 +1125,7 @@ class Menu extends Widget {
    * Open the child menu at the active index immediately.
    *
    * If a different child menu is already open, it will be closed,
-   * event if the active item is not a valid submenu.
+   * even if the active item is not a valid submenu.
    */
   private _openChildMenu(activateFirst = false): void {
     // If the item is not a valid submenu, close the child menu.
@@ -1103,7 +1167,9 @@ class Menu extends Widget {
    * This is a no-op if a child menu is not open.
    */
   private _closeChildMenu(): void {
-    if (this._childMenu) this._childMenu.close();
+    if (this._childMenu) {
+      this._childMenu.close();
+    }
   }
 
   /**
@@ -1164,6 +1230,8 @@ class Menu extends Widget {
 
 // Define the signals for the `Menu` class.
 defineSignal(Menu.prototype, 'triggered');
+defineSignal(Menu.prototype, 'aboutToClose');
+defineSignal(Menu.prototype, 'menuRequested');
 
 
 /**
@@ -1219,7 +1287,7 @@ namespace Menu {
    *
    * #### Notes
    * User code can implement a custom renderer when the default
-   * content created by the menu  is insufficient.
+   * content created by the menu is insufficient.
    */
   export
   interface IContentRenderer {
@@ -1231,7 +1299,7 @@ namespace Menu {
      * #### Notes
      * The data in the node should be uninitialized.
      *
-     * The `updateTabNode` method will be called for initialization.
+     * The `updateItemNode` method will be called for initialization.
      */
     createItemNode(): HTMLElement;
 
