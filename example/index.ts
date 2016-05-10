@@ -7,15 +7,15 @@
 |----------------------------------------------------------------------------*/
 import {
   Menu, MenuItem
-} from '../lib/menu';
+} from '../lib/widgets/menu';
 
 import {
   MenuBar
-} from '../lib/menubar';
+} from '../lib/widgets/menubar';
 
 import {
   Widget
-} from '../lib/widget';
+} from '../lib/widgets/widget';
 
 import '../styles/base.css';
 

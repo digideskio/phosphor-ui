@@ -28,7 +28,7 @@
     "clean:src": "rimraf lib",
     "clean:test": "rimraf test/build && rimraf test/coverage",
     "clean": "npm run clean:src && npm run clean:test",
-    "build:example": "tsc --project example/_tsconfig.json && webpack --config example/_webpack.conf.js",
+    "build:example": "tsc --project example && webpack --config example/webpack.conf.js",
     "build:src": "tsc --project src",
     "build:test": "tsc --project test/src",
     "build": "npm run build:src && npm run build:test",
