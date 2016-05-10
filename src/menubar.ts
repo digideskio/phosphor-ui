@@ -700,6 +700,7 @@ class MenuBar extends Widget {
     // Reset the active index.
     this.activeIndex = -1;
   }
+
   /**
    * Handle the `menuRequested` signal of a child menu.
    */
