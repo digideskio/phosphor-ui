@@ -42,11 +42,7 @@ import {
 } from '../common/boxengine';
 
 import {
-  overrideCursor
-} from '../common/cssutil';
-
-import {
-  IBoxSizing, boxSizing, sizeLimits
+  IBoxSizing, boxSizing, overrideCursor, sizeLimits
 } from '../common/domutil';
 
 import {

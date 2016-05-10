@@ -38,11 +38,7 @@ import {
 } from 'phosphor-core/lib/patterns/signaling';
 
 import {
-  overrideCursor
-} from '../common/cssutil';
-
-import {
-  hitTest
+  hitTest, overrideCursor
 } from '../common/domutil';
 
 import {
