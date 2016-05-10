@@ -361,9 +361,6 @@ class MenuBar extends Widget {
     this._nodes.remove(i);
     this._menus.remove(i);
 
-    // Remove the menu from the dirty set.
-    this._dirtyMenus.delete(menu);
-
     // Disconnect from the menu signals.
     menu.triggered.disconnect(this._onMenuTriggered, this);
     menu.aboutToClose.disconnect(this._onMenuAboutToClose, this);
@@ -401,9 +398,6 @@ class MenuBar extends Widget {
     // Clear the node and menus vectors.
     this._nodes.clear();
     this._menus.clear();
-
-    // Clear the dirty menu set.
-    this._dirtyMenus.clear();
 
     // Clear the content node.
     this.contentNode.textContent = '';
@@ -467,24 +461,20 @@ class MenuBar extends Widget {
    * A message handler invoked on an `'update-request'` message.
    */
   protected onUpdateRequest(msg: Message): void {
-    let nodes = this._nodes;
+    // Fetch common variables.
     let menus = this._menus;
+    let nodes = this._nodes;
     let renderer = this._renderer;
-    let activeMenu = this.activeMenu;
-    let dirtyMenus = this._dirtyMenus;
-    for (let i = 0, n = nodes.length; i < n; ++i) {
-      let node = nodes.at(i);
-      let menu = menus.at(i);
-      if (dirtyMenus.has(menu)) {
-        renderer.updateItemNode(node, menu.title);
-      }
-      if (menu === activeMenu) {
-        node.classList.add(ACTIVE_CLASS);
-      } else {
-        node.classList.remove(ACTIVE_CLASS);
-      }
+
+    // Update the state of the item nodes.
+    for (let i = 0, n = menus.length; i < n; ++i) {
+      renderer.updateItemNode(nodes.at(i), menus.at(i).title);
     }
-    dirtyMenus.clear();
+
+    // Add the active class to the active item.
+    if (this._activeIndex !== -1) {
+      nodes.at(this._activeIndex).classList.add(ACTIVE_CLASS);
+    }
   }
 
   /**
@@ -732,14 +722,12 @@ class MenuBar extends Widget {
    * Handle the `changed` signal of a title object.
    */
   private _onTitleChanged(sender: Title): void {
-    this._dirtyMenus.add(sender.owner as Menu);
     this.update();
   }
 
   private _activeIndex = -1;
   private _childMenu: Menu = null;
   private _menus = new Vector<Menu>();
-  private _dirtyMenus = new Set<Menu>();
   private _nodes = new Vector<HTMLElement>();
   private _renderer: MenuBar.IContentRenderer;
 }
