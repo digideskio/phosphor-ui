@@ -434,6 +434,11 @@ class Menu extends Widget {
   }
 
   /**
+   * A signal emitted when a user action hits the left or right edge of a menu.
+   */
+  edgeRequested: ISignal<Menu, 'left' | 'right'>;
+
+  /**
    * A signal emitted when a menu item in the hierarchy is triggered.
    *
    * #### Notes
@@ -871,6 +876,7 @@ class Menu extends Widget {
       this._childIndex = -1;
       this._childMenu = null;
       childMenu._parentMenu = null;
+      childMenu.edgeRequested.disconnect(this._onEdgeRequested, this);
       childMenu.close();
     }
 
@@ -915,7 +921,11 @@ class Menu extends Widget {
     case 37: // Left Arrow
       event.preventDefault();
       event.stopPropagation();
-      if (this._parentMenu) this.close();
+      if (this._parentMenu) {
+        this.close();
+      } else {
+        this.edgeRequested.emit('left');
+      }
       break;
     case 38: // Up Arrow
       event.preventDefault();
@@ -926,7 +936,11 @@ class Menu extends Widget {
       event.preventDefault();
       event.stopPropagation();
       let item = this.activeItem;
-      if (item && item.type === 'submenu') this.triggerActiveItem();
+      if (item && item.type === 'submenu') {
+        this.triggerActiveItem();
+      } else {
+        this.edgeRequested.emit('right');
+      }
       break;
     case 40: // Down Arrow
       event.preventDefault();
@@ -1072,6 +1086,17 @@ class Menu extends Widget {
   }
 
   /**
+   * Handle the `edgeRequested` signal of a child menu.
+   *
+   * #### Notes
+   * This handler merely emits whichever edge its child menu requested.
+   */
+  private _onEdgeRequested(sender: Menu, args: 'left' | 'right'): void {
+    // All child edge request signals get propagated up.
+    this.edgeRequested.emit(args);
+  }
+
+  /**
    * Open the child menu at the active index immediately.
    *
    * If a different child menu is already open, it will be closed,
@@ -1097,6 +1122,7 @@ class Menu extends Widget {
     // Update the private child state.
     this._childMenu = menu;
     this._childIndex = this._activeIndex;
+    this._childMenu.edgeRequested.connect(this._onEdgeRequested, this);
 
     // Set the parent menu reference for the child.
     menu._parentMenu = this;
@@ -1117,7 +1143,10 @@ class Menu extends Widget {
    * This is a no-op if a child menu is not open.
    */
   private _closeChildMenu(): void {
-    if (this._childMenu) this._childMenu.close();
+    if (this._childMenu) {
+      this._childMenu.edgeRequested.disconnect(this._onEdgeRequested, this);
+      this._childMenu.close();
+    }
   }
 
   /**
@@ -1177,6 +1206,7 @@ class Menu extends Widget {
 
 
 // Define the signals for the `Menu` class.
+defineSignal(Menu.prototype, 'edgeRequested');
 defineSignal(Menu.prototype, 'triggered');
 defineSignal(Menu.prototype, 'aboutToClose');
 
