@@ -309,8 +309,8 @@ class MenuBar extends Widget {
       // Connect to the menu signals.
       menu.triggered.connect(this._onMenuTriggered, this);
       menu.aboutToClose.connect(this._onMenuAboutToClose, this);
+      menu.menuRequested.connect(this._onMenuMenuRequested, this);
       menu.title.changed.connect(this._onTitleChanged, this);
-      menu.edgeRequested.connect(this._onEdgeRequested, this);
 
       // There is nothing more to do.
       return;
@@ -367,6 +367,7 @@ class MenuBar extends Widget {
     // Disconnect from the menu signals.
     menu.triggered.disconnect(this._onMenuTriggered, this);
     menu.aboutToClose.disconnect(this._onMenuAboutToClose, this);
+    menu.menuRequested.disconnect(this._onMenuMenuRequested, this);
     menu.title.changed.disconnect(this._onTitleChanged, this);
 
     // Remove the node from the content node.
@@ -392,8 +393,8 @@ class MenuBar extends Widget {
     each(this._menus, menu => {
       menu.triggered.disconnect(this._onMenuTriggered, this);
       menu.aboutToClose.disconnect(this._onMenuAboutToClose, this);
+      menu.menuRequested.disconnect(this._onMenuMenuRequested, this);
       menu.title.changed.disconnect(this._onTitleChanged, this);
-      menu.edgeRequested.disconnect(this._onEdgeRequested, this);
       menu.removeClass(MENU_CLASS);
     });
 
@@ -699,6 +700,32 @@ class MenuBar extends Widget {
     // Reset the active index.
     this.activeIndex = -1;
   }
+  /**
+   * Handle the `menuRequested` signal of a child menu.
+   */
+  private _onMenuMenuRequested(sender: Menu, args: 'next' | 'previous'): void {
+    // Bail if the sender is not the child menu.
+    if (sender !== this._childMenu) {
+      return;
+    }
+
+    // Lookup the active index and menu count.
+    let i = this._activeIndex;
+    let n = this._menus.length;
+
+    // Active the next requested index.
+    switch (args) {
+    case 'next':
+      this.activeIndex = i === n - 1 ? 0 : i + 1;
+      break;
+    case 'previous':
+      this.activeIndex = i === 0 ? n - 1 : i - 1;
+      break;
+    }
+
+    // Open the active menu.
+    this.openActiveMenu();
+  }
 
   /**
    * Handle the `changed` signal of a title object.
@@ -706,23 +733,6 @@ class MenuBar extends Widget {
   private _onTitleChanged(sender: Title): void {
     this._dirtyMenus.add(sender.owner as Menu);
     this.update();
-  }
-
-  /**
-   * Handle the `edgeRequested` signal of a child menu.
-   */
-  private _onEdgeRequested(sender: Menu, args: 'left' | 'right'): void {
-    let i = this._activeIndex;
-    let n = this._menus.length;
-    switch (args) {
-    case 'left':
-      this.activeIndex = i === 0 ? n - 1 : i - 1;
-      break;
-    case 'right':
-      this.activeIndex = i === n - 1 ? 0 : i + 1;
-      break;
-    }
-    this.openActiveMenu();
   }
 
   private _activeIndex = -1;
