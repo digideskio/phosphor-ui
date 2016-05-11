@@ -46,10 +46,6 @@ import {
 } from '../common/domutil';
 
 import {
-  prepareGeometry, resetGeometry, setGeometry
-} from './layoututil';
-
-import {
   Panel, PanelLayout
 } from './panel';
 
@@ -633,7 +629,7 @@ class SplitLayout extends PanelLayout {
     this._handles.insert(index, handle);
 
     // Prepare the layout geometry for the widget.
-    prepareGeometry(widget);
+    Widget.prepareGeometry(widget);
 
     // Add the widget and handle nodes to the parent.
     this.parent.node.appendChild(widget.node);
@@ -693,7 +689,7 @@ class SplitLayout extends PanelLayout {
     this.parent.node.removeChild(handle);
 
     // Reset the layout geometry for the widget.
-    resetGeometry(widget);
+    Widget.resetGeometry(widget);
 
     // Post a layout request for the parent widget.
     this.parent.fit();
@@ -926,7 +922,7 @@ class SplitLayout extends PanelLayout {
       let size = this._sizers.at(i).size;
       let hstyle = this._handles.at(i).style;
       if (horz) {
-        setGeometry(widget, left, top, size, height);
+        Widget.setGeometry(widget, left, top, size, height);
         left += size;
         hstyle.top = `${top}px`;
         hstyle.left = `${left}px`;
@@ -934,7 +930,7 @@ class SplitLayout extends PanelLayout {
         hstyle.height = `${height}px`;
         left += spacing;
       } else {
-        setGeometry(widget, left, top, width, size);
+        Widget.setGeometry(widget, left, top, width, size);
         top += size;
         hstyle.top = `${top}px`;
         hstyle.left = `${left}px`;

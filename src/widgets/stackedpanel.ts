@@ -18,10 +18,6 @@ import {
 } from '../common/domutil';
 
 import {
-  prepareGeometry, resetGeometry, setGeometry
-} from './layoututil';
-
-import {
   Panel, PanelLayout
 } from './panel';
 
@@ -110,7 +106,7 @@ class StackedLayout extends PanelLayout {
    */
   protected attachWidget(index: number, widget: Widget): void {
     // Prepare the layout geometry for the widget.
-    prepareGeometry(widget);
+    Widget.prepareGeometry(widget);
 
     // Add the widget's node to the parent.
     this.parent.node.appendChild(widget.node);
@@ -157,7 +153,7 @@ class StackedLayout extends PanelLayout {
     this.parent.node.removeChild(widget.node);
 
     // Reset the layout geometry for the widget.
-    resetGeometry(widget);
+    Widget.resetGeometry(widget);
 
     // Reset the z-index for the widget.
     widget.node.style.zIndex = '';
@@ -325,7 +321,7 @@ class StackedLayout extends PanelLayout {
         continue;
       }
       widget.node.style.zIndex = `${i}`;
-      setGeometry(widget, left, top, width, height);
+      Widget.setGeometry(widget, left, top, width, height);
     }
   }
 

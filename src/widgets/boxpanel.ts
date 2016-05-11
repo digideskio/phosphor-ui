@@ -30,10 +30,6 @@ import {
 } from '../common/domutil';
 
 import {
-  prepareGeometry, resetGeometry, setGeometry
-} from './layoututil';
-
-import {
   Panel, PanelLayout
 } from './panel';
 
@@ -293,7 +289,7 @@ class BoxLayout extends PanelLayout {
     this._sizers.insert(index, new BoxSizer());
 
     // Prepare the layout geometry for the widget.
-    prepareGeometry(widget);
+    Widget.prepareGeometry(widget);
 
     // Add the widget's node to the parent.
     this.parent.node.appendChild(widget.node);
@@ -346,7 +342,7 @@ class BoxLayout extends PanelLayout {
     this.parent.node.removeChild(widget.node);
 
     // Reset the layout geometry for the widget.
-    resetGeometry(widget);
+    Widget.resetGeometry(widget);
 
     // Post a layout request for the parent widget.
     this.parent.fit();
@@ -571,19 +567,19 @@ class BoxLayout extends PanelLayout {
       let size = this._sizers.at(i).size;
       switch (this._direction) {
       case 'left-to-right':
-        setGeometry(widget, left, top, size, height);
+        Widget.setGeometry(widget, left, top, size, height);
         left += size + this._spacing;
         break;
       case 'top-to-bottom':
-        setGeometry(widget, left, top, width, size);
+        Widget.setGeometry(widget, left, top, width, size);
         top += size + this._spacing;
         break;
       case 'right-to-left':
-        setGeometry(widget, left - size, top, size, height);
+        Widget.setGeometry(widget, left - size, top, size, height);
         left -= size + this._spacing;
         break;
       case 'bottom-to-top':
-        setGeometry(widget, left, top - size, width, size);
+        Widget.setGeometry(widget, left, top - size, width, size);
         top -= size + this._spacing;
         break;
       }
