@@ -173,6 +173,8 @@ interface ICommand {
    * command as grayed-out and non-interactive.
    *
    * This function may be called often, and so should be efficient.
+   *
+   * The default value is `true`.
    */
   isEnabled?: BoolFunc;
 
@@ -183,6 +185,8 @@ interface ICommand {
    * Visual representations may use this value to display a toggled
    * command in a different form, such as a check mark for a menu
    * item or depressed toggle button.
+   *
+   * The default value is `false`.
    */
   isToggled?: BoolFunc;
 
@@ -192,6 +196,8 @@ interface ICommand {
    * #### Notes
    * Visual representations may use this value to hide or otherwise
    * not display a non-visible command.
+   *
+   * The default value is `true`.
    */
   isVisible?: BoolFunc;
 }
@@ -641,9 +647,9 @@ namespace Private {
       description: asStringFunc(cmd.description),
       category: asStringFunc(cmd.category),
       className: asStringFunc(cmd.className),
-      isEnabled: asBoolFunc(cmd.isEnabled),
-      isToggled: asBoolFunc(cmd.isToggled),
-      isVisible: asBoolFunc(cmd.isVisible)
+      isEnabled: cmd.isEnabled || trueFunc,
+      isToggled: cmd.isToggled || falseFunc,
+      isVisible: cmd.isVisible || trueFunc
     };
   }
 
@@ -653,9 +659,14 @@ namespace Private {
   const emptyStringFunc: StringFunc = (args: any) => '';
 
   /**
+   * A singleton true boolean function.
+   */
+  const trueFunc: BoolFunc = (args: any) => true;
+
+  /**
    * A singleton false boolean function.
    */
-  const emptyBoolFunc: BoolFunc = (args: any) => false;
+  const falseFunc: BoolFunc = (args: any) => false;
 
   /**
    * Coerce an optional string or string func to a string func.
@@ -668,12 +679,5 @@ namespace Private {
       return text;
     }
     return (args: any) => text as string;
-  }
-
-  /**
-   * Coerce an optional bool func to a bool func.
-   */
-  function asBoolFunc(func?: BoolFunc): BoolFunc {
-    return func === void 0 ? emptyBoolFunc : func;
   }
 }
